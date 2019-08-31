@@ -1,5 +1,7 @@
-/* A simple server in the internet domain using TCP
-   The port number is passed as an argument */
+/*  A simple server in the internet domain using TCP
+   The port number is passed as an argument 
+   This version runs forever, forking off a separate 
+   process for each connection */
 #include <stdio.h>     // header file contains declarations used in most input and output
 #include <stdlib.h>    
 #include <string.h>    // String header
@@ -9,15 +11,15 @@
 #include <netinet/in.h>// header file in.h contains constants and structures needed for interent domain addresses
 
 void error(const char *msg); // This function is called when a system call fails. 
-void readingAndWriting(int scoket); // This function is called when reading and writing info to client
+void readingAndWriting(int sock); // This function is called when reading and writing info to client
 
 int main(int argc, char *argv[]){
 
      int sockfd;        // file descriptor. Store the values returned by the socket system and the accept system call.
      int newsockfd;     // file descriptor. Store the values returned by the socket system and the accept system call.
      int portno;        // stores the port number on which the server accepts connections
+     int pid;
      socklen_t clilen;  // stores the size of the address of the client. This is needed for the accept system call.
-     char buffer[256];  // the server reads characters from the socket connection into this buffer.
      
      /**
      * A sockaddr_in is a structure containing an interent address. This structure is defined in netinet/in.h.
@@ -30,8 +32,6 @@ int main(int argc, char *argv[]){
      * in_addr structure, defined in the same header file, contains only one field, a unsigned long called s_addr.
      */
      struct sockaddr_in serv_addr, cli_addr;  // serv_addr will contain the address of the server, and cli_addr will contain the address of the client which connects to the server.
-
-     int n;             // return value for the read() and write() calles; i.e. it contains the number of characters read or written
      
      // User need to pass in the port number on which the server will accept connections as an argument.
      if (argc < 2) {
@@ -52,8 +52,7 @@ int main(int argc, char *argv[]){
      * Reference: http://www.linuxhowtos.org/data/6/socket.txt
      */
      sockfd = socket(AF_INET, SOCK_STREAM, 0);  
-     if (sockfd < 0) 
-        error("ERROR opening socket");
+     if (sockfd < 0) error("ERROR opening socket");
 
      // The function bzero() sets all values in a buffer to zero. It takes two arguments, the first is a pointer to the buffer and the second is the size of the buffer. Thus, this line initializes serv_addr to zeros.
      bzero((char *) &serv_addr, sizeof(serv_addr));
@@ -95,7 +94,7 @@ int main(int argc, char *argv[]){
      * Reference: http://www.linuxhowtos.org/data/6/accept.txt
      */ 
      clilen = sizeof(cli_addr);
-     while(true){
+     while(1){
         // return 0 success and -1 failure
         newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
         if (newsockfd < 0) error("ERROR on accept");
@@ -107,16 +106,14 @@ int main(int argc, char *argv[]){
         */
         pid = fork();
         if(pid < 0) error("ERROR on fork");
-        if(pid == 0){
+        else if(pid == 0){
             close(sockfd);
             readingAndWriting(newsockfd);
             exit(0);
         }
-        else{
-            close(newsockfd);
-        }
-        close(sockfd);
+        else close(newsockfd);
      }
+     close(sockfd);
      return 0; 
 }
 
@@ -131,14 +128,14 @@ void error(const char *msg){
     exit(1);
 }
 
-void readingAndWriting(int scoket){
+void readingAndWriting(int sock){
     int n;
     char buffer[256];
 
     bzero(buffer,256);
-    n = read(socket, buffer, 255);
+    n = read(sock, buffer, 255);
     if(n < 0) error("ERROR reading from socket");
     printf("Here is the message: %s\n",buffer);
-    n = write(socket,"I got your message",18);
+    n = write(sock,"I got your message",18);
     if (n < 0) error("ERROR writing to socket");
 }
