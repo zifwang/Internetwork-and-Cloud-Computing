@@ -1,36 +1,49 @@
-/* a client in the unix domain */
+/* UDP client in the internet domain */
 #include <sys/types.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <sys/socket.h>
-#include <sys/un.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <stdio.h>
-void error(const char *);
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 
+void error(const char *);
 int main(int argc, char *argv[])
 {
-   int sockfd, servlen,n;
-   struct sockaddr_un  serv_addr;
-   char buffer[82];
+   int sock, n;
+   unsigned int length;
+   struct sockaddr_in server, from;
+   struct hostent *hp;
+   char buffer[256];
+   
+   if (argc != 3) { printf("Usage: server port\n");
+                    exit(1);
+   }
+   sock= socket(AF_INET, SOCK_DGRAM, 0);
+   if (sock < 0) error("socket");
 
-   bzero((char *)&serv_addr,sizeof(serv_addr));
-   serv_addr.sun_family = AF_UNIX;
-   strcpy(serv_addr.sun_path, argv[1]);
-   servlen = strlen(serv_addr.sun_path) + 
-                 sizeof(serv_addr.sun_family);
-   if ((sockfd = socket(AF_UNIX, SOCK_DGRAM,0)) < 0)
-       error("Creating socket");
-   if (connect(sockfd, (struct sockaddr *) 
-                         &serv_addr, servlen) < 0)
-       error("Connecting");
-   printf("Please enter your message: ");
-   bzero(buffer,82);
-   fgets(buffer,80,stdin);
-   write(sockfd,buffer,strlen(buffer));
-   n=read(sockfd,buffer,80);
-   printf("The return message was\n");
+   server.sin_family = AF_INET;
+   hp = gethostbyname(argv[1]);
+   if (hp==0) error("Unknown host");
+
+   bcopy((char *)hp->h_addr, 
+        (char *)&server.sin_addr,
+         hp->h_length);
+   server.sin_port = htons(atoi(argv[2]));
+   length=sizeof(struct sockaddr_in);
+   printf("Please enter the message: ");
+   bzero(buffer,256);
+   fgets(buffer,255,stdin);
+   n=sendto(sock,buffer,
+            strlen(buffer),0,(const struct sockaddr *)&server,length);
+   if (n < 0) error("Sendto");
+   n = recvfrom(sock,buffer,256,0,(struct sockaddr *)&from, &length);
+   if (n < 0) error("recvfrom");
+   write(1,"Got an ack: ",12);
    write(1,buffer,n);
-   close(sockfd);
+   close(sock);
    return 0;
 }
 
