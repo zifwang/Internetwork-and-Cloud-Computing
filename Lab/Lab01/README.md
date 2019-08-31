@@ -34,6 +34,6 @@
        e.g. g++ -o client client.c
             ./client 192.169.0.210 51717
     6. The client will prompt you to enter a message. 
-       If everything works correctly, the server will display your message on stdout, send an acknowledgement message to the client and terminate.  
+       If everything works correctly, the server will display your message on stdout, 
+       send an acknowledgement message to the client and terminate.  
        The client will print the acknowledgement message from the server and then terminate.
-       
