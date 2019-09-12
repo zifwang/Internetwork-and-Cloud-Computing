@@ -8,11 +8,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <iostream>
+#include "argParser.h"
 
 using namespace std;
 
 int main(int argc, char *argv[]){
-
+    ArgsOptions args = parse_args(argc,argv);
+    cout << args.portNumber << endl;
+    cout << args.ipAddress << endl;
 
 
 

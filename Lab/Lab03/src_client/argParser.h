@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 
 /**
@@ -21,4 +22,4 @@ void print_usage();
 /**
  * Parses all arguments provided by users 
  */ 
-ArgsOptions parse_args(int argc, char* argv[]);
+ArgsOptions parse_args(int argc, char **argv);

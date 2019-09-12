@@ -1,0 +1,2 @@
+client.o: client.cpp argParser.h
+argParser.o: argParser.cpp argParser.h

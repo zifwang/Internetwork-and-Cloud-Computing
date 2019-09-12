@@ -13,10 +13,10 @@ using namespace std;
 
 int main(int argc, char **argv){
     // Arguments Parse
-    ArgsOptions flags = parse_args(argc, argv);
-    cout << flags.portNumber << endl;
-    cout << flags.transferFileName << endl;
+    ArgsOptions args = parse_args(argc, argv);
+
 
 
     return 0;
 }
+
