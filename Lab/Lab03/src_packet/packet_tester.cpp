@@ -38,7 +38,7 @@ int main(){
     }
     cout << endl;
 
-    for(int i = 0; i < 250; i = i+2){
+    for(int i = 0; i < 22; i = i+2){
         data[i] = 'b';
         data[i+1] = ',';
     }
