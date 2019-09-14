@@ -54,5 +54,4 @@ class udp_client{
         // file status
         long file_size = 0;
         long total_frame = 0;
-
 };

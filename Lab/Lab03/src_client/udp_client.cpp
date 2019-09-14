@@ -49,7 +49,19 @@ void udp_client::send_file(){
     // Read file to a file vector
     vector<string> fileVector = readFile(file_name, file_size, total_frame);
 
+    // Declare a packet
+    struct packet send_packet;
+
     // Start sending file to receiver
+    for(int i = 0; i < fileVector.size(); i++){
+        // set packet 
+        send_packet.packetSequence = i;
+        send_packet.typePacket = SEND;
+        send_packet.dataSize = fileVector[i].length();
+        strcpy(send_packet.dataBuffer,fileVector[i].c_str());
+        // udp send
+
+    }
 
 }
 

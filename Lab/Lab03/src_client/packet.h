@@ -25,9 +25,9 @@ struct packet
 {
     /* data */
     char dataBuffer[DATABUFFER_SIZE];
-    unsigned short dataSize;
+    long dataSize;
     enum packetType typePacket;
-    unsigned int packetSequence;
+    long packetSequence;
 };
 
 void socket_buffer_parser(struct packet inputPacket, char *outputBuffer);
