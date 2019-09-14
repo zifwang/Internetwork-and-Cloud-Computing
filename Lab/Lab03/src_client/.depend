@@ -1,2 +1,4 @@
+client.o: client.cpp argParser.h packet.h udp_client.h
 argParser.o: argParser.cpp argParser.h
 packet.o: packet.cpp packet.h
+udp_client.o: udp_client.cpp packet.h udp_client.h

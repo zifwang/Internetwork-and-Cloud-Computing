@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <vector>
+#include <map>
 #include "packet.h"
 
 using namespace std;
@@ -31,7 +32,16 @@ class udp_client{
          */
         void send_file();
 
+        int send_frame(int sockfd, struct sockaddr_in server, struct packet &send_packet, long frame, string send_data);
+
+        int send_done(int sockfd, struct sockaddr_in server, struct packet &send_packet);
+
+        int send_header(int sockfd, struct sockaddr_in server, struct packet &send_packet, long total_frames, string file_name);
+
         void receive_file();
+
+        int receive_header(int sockfd, struct sockaddr_in from, struct sockaddr_in server, struct packet &header_packet);
+        // int receive_frame();
 
         void error(const char *msg);
 
@@ -41,17 +51,20 @@ class udp_client{
          * udp_client private variables
          */ 
         string udp_command = "";
-        string file_name = "";
         string ip_address = "";
         int port_number = 0;
         int sockfd;
         int reading;
         struct sockaddr_in server, from;
+        socklen_t sockaddr_in_length = sizeof(struct sockaddr_in);
         struct hostent *hp;
         char buffer[PACKET_SIZE];
 
 
         // file status
+        string file_name = "";
         long file_size = 0;
         long total_frame = 0;
+        map<long,string> receive_file_map;
+
 };

@@ -6,7 +6,7 @@
 #   make clean
 CC = g++
 CFLAGS=-c -g -std=c++11
-SOURCES=client.cpp argParser.cpp packet.cpp
+SOURCES=client.cpp argParser.cpp packet.cpp udp_client.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 LIBS=
 LDFLAGS=
