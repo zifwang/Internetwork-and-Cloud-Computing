@@ -38,6 +38,11 @@ void udp_server::run(){
     while(1){
         receive_header(sockfd, from);
         receive_file();
+        for (auto& t : receive_file_map){
+            std::cout << t.first << " " << t.second <<  "\n";
+        }
+        cout << receive_file_map[long(-1)] << endl;
+        cout << "Receive number of packets: " << receive_file_map.size() << endl;
         break;
 
     }
@@ -63,11 +68,11 @@ void udp_server::receive_file(){
     // Get file
     receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
     while(receive_packet.typePacket != DONE){
-        if(receive_packet.typePacket != DONE){
+        if(receive_packet.typePacket == DONE) continue;
+        else{
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
         }
-
         memset(&receive_packet, 0, sizeof(receive_packet));
 
         receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
