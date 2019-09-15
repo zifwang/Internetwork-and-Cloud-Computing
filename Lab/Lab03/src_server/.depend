@@ -1,4 +1,0 @@
-server.o: server.cpp argParser.h udp_server.h packet.h
-argParser.o: argParser.cpp argParser.h
-packet.o: packet.cpp packet.h
-udp_server.o: udp_server.cpp packet.h udp_server.h

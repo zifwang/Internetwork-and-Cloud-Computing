@@ -1,6 +1,7 @@
 #pragma once
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -55,6 +56,7 @@ class udp_server{
         struct sockaddr_in server;
         struct sockaddr_in from;
         socklen_t sockaddr_in_length = sizeof(struct sockaddr_in);
+        struct timeval time_out = {0, 0};
         char buffer[PACKET_SIZE];
 
         // file status
