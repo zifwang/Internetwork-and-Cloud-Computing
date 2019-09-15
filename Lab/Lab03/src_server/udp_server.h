@@ -55,6 +55,7 @@ class udp_server{
         struct sockaddr_in server;
         struct sockaddr_in from;
         socklen_t sockaddr_in_length = sizeof(struct sockaddr_in);
+        struct timeval t_out = {0, 0};
         char buffer[PACKET_SIZE];
 
         // file status

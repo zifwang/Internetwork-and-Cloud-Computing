@@ -30,6 +30,7 @@ udp_server::udp_server(int portNumber){
     if(bind(sockfd, (struct sockaddr *) &server, sizeof(server)) == -1){
         error("Server Bind error");
     }
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&t_out, sizeof(struct timeval));
 }
 
 void udp_server::run(){
@@ -68,7 +69,6 @@ void udp_server::receive_file(){
 }
 
 void udp_server::receive_header(int sockfd, struct sockaddr_in from){
-    cout << "Receiving header" << endl;
     int header;
     struct packet header_packet;
 
@@ -85,15 +85,15 @@ void udp_server::receive_header(int sockfd, struct sockaddr_in from){
         receive_header_number++;
     }
     receive_header_number = 0;
+
     // Set file status
     string tmp(header_packet.dataBuffer);
     file_name = tmp;
     total_frame = header_packet.packetSequence;
-    cout << "FileName: " << file_name << endl;
-    cout << "Total Frame: "<< total_frame << endl;
+
     // Update typePacket of header_packet
     header_packet.typePacket = (enum packetType)REQUEST_ACK;
-    cout << "Type: " << header_packet.typePacket << endl;
+
 
     // Send confirmation of receiving packet to sender
     header = sendto(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &from, sizeof(from));
