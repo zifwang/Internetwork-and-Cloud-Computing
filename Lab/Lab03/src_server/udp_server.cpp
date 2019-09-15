@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <iostream>
@@ -30,7 +31,7 @@ udp_server::udp_server(int portNumber){
     if(bind(sockfd, (struct sockaddr *) &server, sizeof(server)) == -1){
         error("Server Bind error");
     }
-    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&t_out, sizeof(struct timeval));
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&time_out, sizeof(struct timeval));
 }
 
 void udp_server::run(){
