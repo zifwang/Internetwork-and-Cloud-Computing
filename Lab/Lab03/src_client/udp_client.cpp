@@ -213,12 +213,6 @@ bool udp_client::send_header(int sockfd, struct sockaddr_in server, struct socka
     resend_header = 0;
 
     string receive_file_name(receive_header_ack.dataBuffer);
-    cout << "PacketSequence: " << send_header_packet.packetSequence << endl;
-    cout << "PacketSequence: " << receive_header_ack.packetSequence << endl;
-    cout << "PacketDataSize: " << send_header_packet.dataSize << endl;
-    cout << "PacketDataSize: " << receive_header_ack.dataSize << endl;
-    cout << "File Name: " << fileName << endl;
-    cout << "File Name: " << receive_file_name << endl;
 
     // Check equality
     if(send_header_packet.packetSequence == receive_header_ack.packetSequence && send_header_packet.dataSize == receive_header_ack.dataSize) return true;    
