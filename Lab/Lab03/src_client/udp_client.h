@@ -32,9 +32,9 @@ class udp_client{
          */
         void send_file();
 
-        int send_frame(int sockfd, struct sockaddr_in server, struct packet &send_packet, long frame, string send_data);
+        int send_frame(int sockfd, struct sockaddr_in server, long frame, string send_data);
 
-        int send_done(int sockfd, struct sockaddr_in server, struct packet &send_packet);
+        int send_done(int sockfd, struct sockaddr_in server);
 
         bool send_header(int sockfd, struct sockaddr_in server, struct sockaddr_in from, long totalFrames, string fileName);
         

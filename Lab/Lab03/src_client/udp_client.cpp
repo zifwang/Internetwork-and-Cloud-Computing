@@ -51,7 +51,7 @@ void udp_client::run(){
         cout << "Success send header" << endl;
 
         // send file
-        // send_file();
+        send_file();
     }
     else{
         cout << "enter correct file name" << endl;
@@ -78,23 +78,12 @@ string udp_client::get_command(){
  * private member function
  */
 void udp_client::send_file(){
-    // // check whether file is existed
-
-
-
-    // // Get file status: file_size, total frame
-    // struct stat statics; 
-    // stat(file_name.c_str(),&statics);
-    // file_size = statics.st_size;
-    // if((file_size % DATABUFFER_SIZE) != 0){
-    //     total_frame = (file_size/DATABUFFER_SIZE) + 1;
-    // }else total_frame = (file_size/DATABUFFER_SIZE);
-    
     // Read file to a file vector
     vector<string> fileVector = readFile(file_name, file_size, total_frame);
 
+
     // Declare variables
-    struct packet send_packet;
+
     struct packet receive_packet;
     int send_to_return_number;
     socklen_t length = sizeof(struct sockaddr_in);
@@ -102,29 +91,14 @@ void udp_client::send_file(){
 
     // Start sending file to receiver
     for(int i = 0; i < fileVector.size(); i++){
-        // // set packet 
-        // send_packet.packetSequence = i;
-        // send_packet.typePacket = (enum packetType)SEND;
-        // send_packet.dataSize = fileVector[i].length();
-        // strcpy(send_packet.dataBuffer,fileVector[i].c_str());
-        // // udp send
-        // send_to_return_number = sendto(sockfd,&(send_packet),sizeof(send_packet),0,(const struct sockaddr *) &server, sizeof(server));
-        send_to_return_number = send_frame(sockfd,server,send_packet,(long)i,fileVector[i]);
-        if(send_to_return_number < 0){
-            cout << "Error send " << i << "th frame, and start resending this frame" << endl;
-            if(resend_frame >= 200){
-                resend_frame = 0;
-                error("Error sending to receiver");
-            }
-            resend_frame++;
-            i--; 
-        }
+        send_to_return_number = send_frame(sockfd,server,(long)i,fileVector[i]);
     }
-    resend_frame = 0;
-    send_to_return_number = send_done(sockfd,server,send_packet);
+
+    // Send Done file transmission done signal to receiver and this Done must be send
+    send_to_return_number = send_done(sockfd,server);
     while(send_to_return_number < 0){
         cout << "Error send done and start resending" << endl;
-        send_to_return_number = send_done(sockfd,server,send_packet);
+        send_to_return_number = send_done(sockfd,server);
         if(resend_frame >= 200){
             resend_frame = 0;
             error("Error sending to receiver");
@@ -132,6 +106,7 @@ void udp_client::send_file(){
         resend_frame++;
     }
     resend_frame = 0;
+
     
 
     // send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, &length);
@@ -155,30 +130,35 @@ void udp_client::send_file(){
     // }
 }
 
-int udp_client::send_frame(int sockfd, struct sockaddr_in server, struct packet &send_packet, long frame, string send_data){
+int udp_client::send_frame(int sockfd, struct sockaddr_in server, long frame, string send_data){
     int send_to_return_number;
+    struct packet send_packet;
     // set packet 
+    memset(&send_packet, 0, sizeof(send_packet));
     send_packet.packetSequence = frame;
     send_packet.typePacket = (enum packetType)SEND;
     send_packet.dataSize = send_data.length();
     strcpy(send_packet.dataBuffer,send_data.c_str());
+
     // udp send
     send_to_return_number = sendto(sockfd,&(send_packet),sizeof(send_packet),0,(const struct sockaddr *) &server, sizeof(server));
 
     return send_to_return_number;
 }
 
-int udp_client::send_done(int sockfd, struct sockaddr_in server, struct packet &send_packet){
+int udp_client::send_done(int sockfd, struct sockaddr_in server){
     int send_to_return_number;
+    struct packet send_done;
     string done = "DONE";
     // set packet
-    send_packet.packetSequence = 0;
-    send_packet.typePacket = (enum packetType)DONE;
-    send_packet.dataSize = 0;
-    strcpy(send_packet.dataBuffer,done.c_str());
+    memset(&send_done, 0, sizeof(send_done));
+    send_done.packetSequence = long(-1);
+    send_done.typePacket = (enum packetType)DONE;
+    send_done.dataSize = 0;
+    strcpy(send_done.dataBuffer,done.c_str());
 
     // udp send
-    send_to_return_number = sendto(sockfd,&(send_packet),sizeof(send_packet),0,(const struct sockaddr *) &server, sizeof(server));
+    send_to_return_number = sendto(sockfd,&(send_done),sizeof(send_done),0,(const struct sockaddr *) &server, sizeof(server));
 
     return send_to_return_number;
 }
