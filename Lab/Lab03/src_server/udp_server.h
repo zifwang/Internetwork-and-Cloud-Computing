@@ -45,6 +45,8 @@ class udp_server{
         
         void error(const char *msg);
 
+        void printPacket(struct packet myPacket);
+
         vector<string> readFile(string fileName, long fileSize, long totalFrame);
 
         /**

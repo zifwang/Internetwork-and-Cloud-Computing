@@ -15,6 +15,7 @@ enum packetType{
     REQUEST,                        // sender requests receiver to receive file
     REQUEST_ACK,                    // receiver receives sending request from sender and confirm back to sender.
     MISSING,                        // receiver sends missing signal to sender to request resend
+    MISSING_SEND_DONE,              // receiver sends missing done signal to sender 
     MISSING_ACK,                    // sender receives resend request
     SEND,                           // sender starts to send packet
     SEND_ACK,                       // receuver gets packet
