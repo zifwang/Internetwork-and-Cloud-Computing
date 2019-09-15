@@ -38,6 +38,7 @@ class udp_server{
 
         void receive_file();
         
+        void receive_header(int sockfd, struct sockaddr_in fromr);
 
         
         void error(const char *msg);

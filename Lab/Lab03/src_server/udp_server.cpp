@@ -26,11 +26,16 @@ udp_server::udp_server(int portNumber){
     server.sin_family=AF_INET;
     server.sin_addr.s_addr=INADDR_ANY;
     server.sin_port=htons(port_number);
-    if (bind(sockfd,(struct sockaddr *)&server,sizeof(server))<0) error("binding");
+    if(bind(sockfd, (struct sockaddr *) &server, sizeof(server)) == -1){
+        error("Server Bind error");
+    }
 }
 
 void udp_server::run(){
-
+    receive_header(sockfd, from);
+    cout << file_name << endl;
+    cout << total_frame << endl;
+    receive_file();
 }
 
 
@@ -55,10 +60,44 @@ void udp_server::receive_file(){
     while(receive_packet.typePacket != DONE){
         string str(receive_packet.dataBuffer);
         receive_file_map[receive_packet.packetSequence] = str;
+        memset(&receive_packet, 0, sizeof(receive_packet));
+
         receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
     }
+}
 
+void udp_server::receive_header(int sockfd, struct sockaddr_in from){
+    int header;
+    struct packet header_packet;
+    memset(&header_packet, 0, sizeof(header_packet));
+    int receive_header_number = 0;
+    // Receive Header
+    header = recvfrom(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
+    while(header < 0){
+        header = recvfrom(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
+        if(receive_header_number >= 20){
+            error("Error receive header from sender");
+        }
+        receive_header_number++;
+    }
+    receive_header_number = 0;
+    // Set file status
+    file_name = header_packet.dataBuffer;
+    total_frame = header_packet.packetSequence;
+    // Update typePacket of header_packet
+    header_packet.typePacket = (enum packetType)REQUEST_ACK;
+    
+    // Send confirmation of receiving packet to sender
+    header = sendto(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &from, sizeof(from));
+    while(header < 0){
+        header = sendto(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &from, sizeof(from));
+        if(receive_header_number >= 20){
+            error("Error receive header from sender");
+        }
+        receive_header_number++;
+    }
 
+    return;
 }
 
 
