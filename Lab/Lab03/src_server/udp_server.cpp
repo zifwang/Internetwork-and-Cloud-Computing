@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <iostream>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,10 +33,10 @@ udp_server::udp_server(int portNumber){
 }
 
 void udp_server::run(){
-    receive_header(sockfd, from);
-    cout << file_name << endl;
-    cout << total_frame << endl;
-    receive_file();
+    while(1){
+        receive_header(sockfd, from);
+        // receive_file();
+    }
 }
 
 
@@ -67,13 +68,16 @@ void udp_server::receive_file(){
 }
 
 void udp_server::receive_header(int sockfd, struct sockaddr_in from){
+    cout << "Receiving header" << endl;
     int header;
     struct packet header_packet;
+
     memset(&header_packet, 0, sizeof(header_packet));
     int receive_header_number = 0;
     // Receive Header
     header = recvfrom(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
-    while(header < 0){
+    cout << header << endl;
+    while(header_packet.typePacket != REQUEST){
         header = recvfrom(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
         if(receive_header_number >= 20){
             error("Error receive header from sender");
@@ -82,11 +86,15 @@ void udp_server::receive_header(int sockfd, struct sockaddr_in from){
     }
     receive_header_number = 0;
     // Set file status
-    file_name = header_packet.dataBuffer;
+    string tmp(header_packet.dataBuffer);
+    file_name = tmp;
     total_frame = header_packet.packetSequence;
+    cout << "FileName: " << file_name << endl;
+    cout << "Total Frame: "<< total_frame << endl;
     // Update typePacket of header_packet
     header_packet.typePacket = (enum packetType)REQUEST_ACK;
-    
+    cout << "Type: " << header_packet.typePacket << endl;
+
     // Send confirmation of receiving packet to sender
     header = sendto(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &from, sizeof(from));
     while(header < 0){
