@@ -36,8 +36,8 @@ class udp_client{
 
         int send_done(int sockfd, struct sockaddr_in server, struct packet &send_packet);
 
-        int send_header(int sockfd, struct sockaddr_in server, struct packet &send_packet, long total_frames, string file_name);
-
+        bool send_header(int sockfd, struct sockaddr_in server, struct sockaddr_in from, long totalFrames, string fileName);
+        
         void receive_file();
 
         int receive_header(int sockfd, struct sockaddr_in from, struct sockaddr_in server, struct packet &header_packet);
@@ -68,3 +68,4 @@ class udp_client{
         map<long,string> receive_file_map;
 
 };
+

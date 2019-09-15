@@ -31,10 +31,10 @@ int main(int argc, char *argv[]){
 
     // socket
     udp_client myClient = udp_client(args.ipAddress,args.portNumber,"Send", fileName);
-    cout << myClient.get_command() << endl;
-    cout << myClient.get_connection_port_number() << endl;
-    cout << myClient.get_file_name() << endl;
-    cout << myClient.get_ip_address() << endl;
+    // cout << myClient.get_command() << endl;
+    // cout << myClient.get_connection_port_number() << endl;
+    // cout << myClient.get_file_name() << endl;
+    // cout << myClient.get_ip_address() << endl;
     myClient.run();
 
 

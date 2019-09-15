@@ -36,8 +36,6 @@ udp_client::udp_client(string ipAddress, int portNumber, string command, string 
 
 void udp_client::run(){
     // send file
-    struct packet send_header_packet;
-    struct packet receive_header_ack;
     if(access(file_name.c_str(),F_OK) == 0){
         // get file status
         struct stat statics; 
@@ -49,26 +47,11 @@ void udp_client::run(){
         printf("File size --> %ld and Total number of packets ---> %d \n", file_size, (int)total_frame);
 
         // send header and receive receiver confirmation
-        memset(&send_header_packet, 0, sizeof(send_header_packet));
-        int header;
-        int resend_header = 0;
-        header = send_header(sockfd, server, send_header_packet, total_frame, file_name);
-        // set time out
-
-        // receive ACK from receive
-        header = recvfrom(sockfd, &(receive_header_ack), sizeof(receive_header_ack), 0, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
-        while(receive_header_ack.typePacket != REQUEST_ACK){
-            header = send_header(sockfd, server, send_header_packet, total_frame, file_name);
-            header = recvfrom(sockfd, &(receive_header_ack), sizeof(receive_header_ack), 0, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
-            resend_header++;
-            if(resend_header >= 20){
-                error("Error send header");
-            }
-        }
-        resend_header = 0;
+        if(!send_header(sockfd, server, from, total_frame, file_name)) error("Error send header");
+        cout << "Success send header" << endl;
 
         // send file
-        send_file();
+        // send_file();
     }
     else{
         cout << "enter correct file name" << endl;
@@ -200,19 +183,47 @@ int udp_client::send_done(int sockfd, struct sockaddr_in server, struct packet &
     return send_to_return_number;
 }
 
-int udp_client::send_header(int sockfd, struct sockaddr_in server, struct packet &send_packet, long total_frames, string file_name){
+bool udp_client::send_header(int sockfd, struct sockaddr_in server, struct sockaddr_in from, long totalFrames, string fileName){
     int send_header_number;
-
+    int resend_header = 0;
+    struct packet send_header_packet;
+    struct packet receive_header_ack;
+    memset(&send_header_packet, 0, sizeof(send_header_packet));
+    memset(&receive_header_ack, 0, sizeof(receive_header_ack));
+    
     // set packet
-    send_packet.packetSequence = total_frames;
-    send_packet.typePacket = (enum packetType)REQUEST;
-    send_packet.dataSize = file_name.length();
-    strcpy(send_packet.dataBuffer,file_name.c_str());
+    send_header_packet.packetSequence = totalFrames;
+    send_header_packet.typePacket = (enum packetType)REQUEST;
+    send_header_packet.dataSize = fileName.length();
+    strcpy(send_header_packet.dataBuffer,fileName.c_str());
 
     // udp send
-    send_header_number = sendto(sockfd,&(send_packet),sizeof(send_packet),0,(const struct sockaddr *) &server, sizeof(server));
+    send_header_number = sendto(sockfd,&(send_header_packet),sizeof(send_header_packet),0,(const struct sockaddr *) &server, sizeof(server));
+    // udp receive
+    send_header_number = recvfrom(sockfd, &(receive_header_ack), sizeof(receive_header_ack), 0, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+    // Resend
+    while(receive_header_ack.typePacket != REQUEST_ACK){
+        send_header_number = sendto(sockfd,&(send_header_packet),sizeof(send_header_packet),0,(const struct sockaddr *) &server, sizeof(server));
+        send_header_number = recvfrom(sockfd, &(receive_header_ack), sizeof(receive_header_ack), 0, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+        resend_header++;
+        if(resend_header >= 20){
+            error("Error send header");
+        }
+    }
+    resend_header = 0;
 
-    return send_header_number;
+    string receive_file_name(receive_header_ack.dataBuffer);
+    cout << "PacketSequence: " << send_header_packet.packetSequence << endl;
+    cout << "PacketSequence: " << receive_header_ack.packetSequence << endl;
+    cout << "PacketDataSize: " << send_header_packet.dataSize << endl;
+    cout << "PacketDataSize: " << receive_header_ack.dataSize << endl;
+    cout << "File Name: " << fileName << endl;
+    cout << "File Name: " << receive_file_name << endl;
+
+    // Check equality
+    if(send_header_packet.packetSequence == receive_header_ack.packetSequence && send_header_packet.dataSize == receive_header_ack.dataSize) return true;    
+
+    return true;
 }
 
 
