@@ -37,7 +37,14 @@ udp_server::udp_server(int portNumber){
 void udp_server::run(){
     while(1){
         receive_header(sockfd, from);
-        // receive_file();
+        receive_file();
+        for (auto& t : receive_file_map){
+            std::cout << t.first << " " << t.second <<  "\n";
+        }
+        cout << receive_file_map[long(-1)] << endl;
+        cout << "Receive number of packets: " << receive_file_map.size() << endl;
+        break;
+
     }
 }
 
@@ -61,12 +68,17 @@ void udp_server::receive_file(){
     // Get file
     receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
     while(receive_packet.typePacket != DONE){
-        string str(receive_packet.dataBuffer);
-        receive_file_map[receive_packet.packetSequence] = str;
+        if(receive_packet.typePacket == DONE) continue;
+        else{
+            string str(receive_packet.dataBuffer);
+            receive_file_map[receive_packet.packetSequence] = str;
+        }
         memset(&receive_packet, 0, sizeof(receive_packet));
 
         receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
     }
+
+    return;
 }
 
 void udp_server::receive_header(int sockfd, struct sockaddr_in from){
@@ -77,7 +89,6 @@ void udp_server::receive_header(int sockfd, struct sockaddr_in from){
     int receive_header_number = 0;
     // Receive Header
     header = recvfrom(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
-    cout << header << endl;
     while(header_packet.typePacket != REQUEST){
         header = recvfrom(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
         if(receive_header_number >= 20){
@@ -136,10 +147,6 @@ void udp_server::error(const char *msg){
     exit(0);
 }
 
-
-
-
-
 vector<string> udp_server::readFile(string fileName, long fileSize, long totalFrame){
     
     FILE *file;
@@ -172,3 +179,9 @@ vector<string> udp_server::readFile(string fileName, long fileSize, long totalFr
     return v;
 }
 
+void udp_server::printPacket(struct packet myPacket){
+    cout << "File Sequence: " << myPacket.packetSequence << endl;
+    cout << "File Type: " << myPacket.typePacket << endl;
+    cout << "File DataSize: " << myPacket.dataSize << endl;
+    cout << "File Data: " << string(myPacket.dataBuffer) << endl;
+}
