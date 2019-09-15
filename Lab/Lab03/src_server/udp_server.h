@@ -52,7 +52,8 @@ class udp_server{
         // udp server variables
         int port_number = 0;
         int sockfd;
-        struct sockaddr_in server, from;
+        struct sockaddr_in server;
+        struct sockaddr_in from;
         socklen_t sockaddr_in_length = sizeof(struct sockaddr_in);
         char buffer[PACKET_SIZE];
 
