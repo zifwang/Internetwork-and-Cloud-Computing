@@ -223,6 +223,7 @@ void udp_client::receive_file(){
     struct packet send_packet;
     int receive_from_return_number;
     memset(&receive_packet, 0, sizeof(receive_packet));
+    memset(&send_packet, 0, sizeof(send_packet));
     receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
     while(receive_packet.typePacket != DONE){
         string str(receive_packet.dataBuffer);

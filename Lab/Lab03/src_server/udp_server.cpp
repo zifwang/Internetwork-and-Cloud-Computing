@@ -13,18 +13,13 @@
 
 using namespace std;
 
-udp_server::udp_server(){
-    // set variables
-
-}
-
 udp_server::udp_server(int portNumber){
     port_number = portNumber;
 
     /*Clear all the data buffer and structure*/
     memset(&server, 0, sizeof(server));
 	memset(&from, 0, sizeof(from));
-
+    
     // init socket
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) error("Cannot create socket");
@@ -34,15 +29,68 @@ udp_server::udp_server(int portNumber){
     if (bind(sockfd,(struct sockaddr *)&server,sizeof(server))<0) error("binding");
 }
 
+void udp_server::run(){
+
+}
+
+
 
 /**
  * Private functions sections
  */
 
+// void send_file(){}
+
+void udp_server::receive_file(){
+    // Declare variables
+    struct packet receive_packet;
+    struct packet send_packet;
+    int receive_from_return_number;
+    memset(&receive_packet, 0, sizeof(receive_packet));
+    memset(&send_packet, 0, sizeof(send_packet));
+    int unreceive_counter = 0;
+
+    // Get file
+    receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
+    while(receive_packet.typePacket != DONE){
+        string str(receive_packet.dataBuffer);
+        receive_file_map[receive_packet.packetSequence] = str;
+        receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
+    }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void udp_server::error(const char *msg){
     perror(msg);
     exit(0);
 }
+
+
+
+
 
 vector<string> udp_server::readFile(string fileName, long fileSize, long totalFrame){
     

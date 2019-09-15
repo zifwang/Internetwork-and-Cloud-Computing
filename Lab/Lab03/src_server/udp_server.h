@@ -36,6 +36,9 @@ class udp_server{
          */
         void send_file();
 
+        void receive_file();
+        
+
         
         void error(const char *msg);
 
