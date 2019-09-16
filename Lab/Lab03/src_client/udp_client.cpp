@@ -81,10 +81,9 @@ void udp_client::send_file(){
     // Read file to a file vector
     vector<string> fileVector = readFile(file_name, file_size, total_frame);
 
-
     // Declare variables
-
     struct packet receive_packet;
+    memset(&receive_packet, 0, sizeof(receive_packet));
     int send_to_return_number;
     socklen_t length = sizeof(struct sockaddr_in);
     int resend_frame = 0;
@@ -107,27 +106,35 @@ void udp_client::send_file(){
     }
     resend_frame = 0;
 
-    
-
-    // send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, &length);
-    // while(send_to_return_number < 0){
-    //     cout << "Error in receiving packet" << endl;
-    //     resend_frame++;
-    //     if(resend_frame >= 200){
-    //         resend_frame = 0;
-    //         error("Error receiving from receiver");
-    //     }
-    //     send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, &length);
-    // }
-    // resend_frame = 0;
-
-    // while(receive_packet.typePacket != DONE_ACK){
-
-
-
-
-    //     send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, &length);
-    // }
+    send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+    while(receive_packet.typePacket != DONE_ACK){
+        missing_frame.clear();
+        while(receive_packet.typePacket != MISSING_SEND_DONE){
+            missing_frame_packet_interpreter(receive_packet,missing_frame);
+            memset(&receive_packet, 0, sizeof(receive_packet));
+            send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+        }
+        // Send missing
+        for(int i = 0; i < missing_frame.size(); i++){
+            send_to_return_number = send_frame(sockfd,server,missing_frame[i],fileVector[int(missing_frame[i])]);
+        }
+        // Send Done file transmission done signal to receiver and this Done must be send
+        send_to_return_number = send_done(sockfd,server);
+        while(send_to_return_number < 0){
+            cout << "Error send done and start resending" << endl;
+            send_to_return_number = send_done(sockfd,server);
+            if(resend_frame >= 200){
+                resend_frame = 0;
+                error("Error sending to receiver");
+            }
+            resend_frame++;
+        }
+        resend_frame = 0;
+        // Get new receive
+        send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+    }
+     
+    return;
 }
 
 int udp_client::send_frame(int sockfd, struct sockaddr_in server, long frame, string send_data){
@@ -199,6 +206,21 @@ bool udp_client::send_header(int sockfd, struct sockaddr_in server, struct socka
 
     return true;
 }
+
+void udp_client::missing_frame_packet_interpreter(struct packet receive_packet, vector<long>& missing_frame){
+    string missing_frame_string = "";
+    for(int i = 0; i < (int)receive_packet.dataSize; i++){
+        if(receive_packet.dataBuffer[i] == ','){
+            missing_frame.push_back(stoi(missing_frame_string));
+            missing_frame_string = "";
+        }else{
+            missing_frame_string = missing_frame_string + receive_packet.dataBuffer[i];
+        }
+    }
+
+    return;
+}
+
 
 
 

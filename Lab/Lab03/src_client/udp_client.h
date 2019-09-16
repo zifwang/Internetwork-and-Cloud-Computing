@@ -38,6 +38,8 @@ class udp_client{
 
         bool send_header(int sockfd, struct sockaddr_in server, struct sockaddr_in from, long totalFrames, string fileName);
         
+        void missing_frame_packet_interpreter(struct packet receive_packet, vector<long>& missing_frame);
+
         void receive_file();
 
         int receive_header(int sockfd, struct sockaddr_in from, struct sockaddr_in server, struct packet &header_packet);
@@ -66,6 +68,7 @@ class udp_client{
         long file_size = 0;
         long total_frame = 0;
         map<long,string> receive_file_map;
+        vector<long> missing_frame;
 
 };
 

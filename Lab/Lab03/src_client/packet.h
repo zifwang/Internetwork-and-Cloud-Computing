@@ -20,6 +20,7 @@ enum packetType{
     SEND,                           // sender starts to send packet
     SEND_ACK,                       // reciever gets packet
     DONE,                           // sender finishes sending 
+    DONE_MISSING,                   // sender finishes sending missing frames
     DONE_ACK,                       // receive confirms receiving finish
 };
 

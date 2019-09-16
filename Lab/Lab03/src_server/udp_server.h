@@ -11,6 +11,8 @@
 #include <string.h>
 #include <vector>
 #include <map>
+#include <set>
+#include <iterator>
 #include "packet.h"
 
 using namespace std;
@@ -38,11 +40,18 @@ class udp_server{
          */
         void send_file();
 
+        void send_packet(int sockfd, struct sockaddr_in from, string send_data, packetType type, long sequence);
+
         void receive_file();
         
-        void receive_header(int sockfd, struct sockaddr_in fromr);
+        void receive_header(int sockfd, struct sockaddr_in from);
 
-        
+        void receive_missing_frame(int sockfd, struct sockaddr_in from);
+
+        bool is_missing_frame(vector<long> receive_file_sequence, vector<long> &missing_frame);
+
+        void request_to_resend_missing_frame(int sockfd, struct sockaddr_in from, vector<long> missing_frame);
+
         void error(const char *msg);
 
         void printPacket(struct packet myPacket);
@@ -66,5 +75,6 @@ class udp_server{
         long file_size = 0;
         long total_frame = 0;
         map<long,string> receive_file_map;
-
+        vector<long> receive_file_sequence;
+        vector<long> missing_frame;
 };

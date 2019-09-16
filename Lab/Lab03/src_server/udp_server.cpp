@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <bits/stdc++.h>
 #include "packet.h"
 #include "udp_server.h"
 
@@ -41,10 +42,8 @@ void udp_server::run(){
         for (auto& t : receive_file_map){
             std::cout << t.first << " " << t.second <<  "\n";
         }
-        cout << receive_file_map[long(-1)] << endl;
         cout << "Receive number of packets: " << receive_file_map.size() << endl;
-        break;
-
+        cout << "Receive number of packets: " << missing_frame.size() << endl;
     }
 }
 
@@ -68,15 +67,19 @@ void udp_server::receive_file(){
     // Get file
     receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
     while(receive_packet.typePacket != DONE){
-        if(receive_packet.typePacket == DONE) continue;
-        else{
+        if(receive_packet.packetSequence >= 0){
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
+            receive_file_sequence.push_back(receive_packet.packetSequence);
         }
+
         memset(&receive_packet, 0, sizeof(receive_packet));
 
         receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
     }
+
+    // Receive Missing frame
+    receive_missing_frame(sockfd,from);
 
     return;
 }
@@ -120,9 +123,106 @@ void udp_server::receive_header(int sockfd, struct sockaddr_in from){
     return;
 }
 
+void udp_server::receive_missing_frame(int sockfd, struct sockaddr_in from){
+    struct packet receive_packet;
+    int receive_from_return_number;
+    memset(&receive_packet, 0, sizeof(receive_packet));
 
+    while(is_missing_frame(receive_file_sequence, missing_frame)){
+        request_to_resend_missing_frame(sockfd,from,missing_frame);
+        receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
+        while(receive_packet.typePacket != DONE_MISSING){
+            if(receive_packet.packetSequence >= 0){
+                string str(receive_packet.dataBuffer);
+                receive_file_map[receive_packet.packetSequence] = str;
+                receive_file_sequence.push_back(receive_packet.packetSequence);
+            }
 
+            memset(&receive_packet, 0, sizeof(receive_packet));
 
+            receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
+        }
+
+    }
+    // send receive all frame signal
+    send_packet(sockfd, from, "Receive ALL Frames", DONE_ACK, long(-3));
+
+    return;
+}
+
+bool udp_server::is_missing_frame(vector<long> receive_file_sequence, vector<long> &missing_frame){
+    missing_frame.clear();
+    // sort vector
+    sort(receive_file_sequence.begin(),receive_file_sequence.end());
+    bool flag = false;
+    long prev = 0;
+    for(int i = 0; i < receive_file_sequence.size(); i++){
+        if(i == 0 && receive_file_sequence[i] > prev){
+            flag = true;
+            for(int j = prev; j < receive_file_sequence[i]; j++){
+                missing_frame.push_back(long(j));
+            }
+            prev = receive_file_sequence[i];
+            continue;
+        }
+        if(prev == receive_file_sequence[i]) continue;
+        if(prev + 1 < receive_file_sequence[i]){
+            flag = true;
+            for(int j = prev+1; j < receive_file_sequence[i]; j++){
+                missing_frame.push_back(long(j));
+            }
+            prev = receive_file_sequence[i];
+        }
+    }
+
+    return flag;
+}
+
+void udp_server::request_to_resend_missing_frame(int sockfd, struct sockaddr_in from, vector<long> missing_frame){
+    string send_string = "";
+    for(int i = 0; i < missing_frame.size(); i++){
+        string current_missing = to_string(missing_frame[i]);
+        if(send_string.length() + current_missing.length() <= DATABUFFER_SIZE - 1){
+            send_string = send_string + current_missing + ",";
+        }
+        else{
+            // send packet
+            send_string.pop_back();
+            send_packet(sockfd, from, send_string, MISSING, send_string.length());
+            // set send_string to empty
+            send_string = "";
+            send_string = send_string + current_missing + ","; 
+        }
+    }
+    // send last missing
+    send_packet(sockfd, from, send_string, MISSING_SEND_DONE, send_string.length());
+
+    return;
+}
+
+void udp_server::send_packet(int sockfd, struct sockaddr_in from, string send_data, packetType type, long sequence){
+    struct packet packet_send;
+    int send_to_return_number = 0;
+    int timeOut_couter = 0;
+    memset(&packet_send, 0, sizeof(packet_send));
+    // set packet
+    packet_send.dataSize = long(send_data.length());
+    packet_send.packetSequence = sequence;
+    packet_send.typePacket = type;
+    strcpy(packet_send.dataBuffer,send_data.c_str());
+
+    // send packet
+    send_to_return_number = sendto(sockfd,&(packet_send),sizeof(packet_send),0,(const struct sockaddr *) &from, sizeof(from));
+    while(send_to_return_number < 0){
+        if(timeOut_couter > 20){
+            error("Error in sending packet");
+        }
+        send_to_return_number = sendto(sockfd,&(packet_send),sizeof(packet_send),0,(const struct sockaddr *) &from, sizeof(from));
+        timeOut_couter++;
+    }
+
+    return;
+}
 
 
 
