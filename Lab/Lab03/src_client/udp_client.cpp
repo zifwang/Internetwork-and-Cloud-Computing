@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <iostream>
 #include "packet.h"
 #include "udp_client.h"
 
@@ -106,8 +107,10 @@ void udp_client::send_file(){
         resend_frame++;
     }
     resend_frame = 0;
+    cout << "send first file done" << endl;
 
     send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+    cout << send_to_return_number << endl;
     while(receive_packet.typePacket != DONE_ACK){
         missing_frame.clear();
         while(receive_packet.typePacket != MISSING_SEND_DONE){
@@ -115,6 +118,7 @@ void udp_client::send_file(){
             memset(&receive_packet, 0, sizeof(receive_packet));
             send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
         }
+        cout << "get missing done" << endl;
         // Send missing
         for(int i = 0; i < missing_frame.size(); i++){
             send_to_return_number = send_frame(sockfd,server,missing_frame[i],fileVector[int(missing_frame[i])]);
@@ -131,9 +135,11 @@ void udp_client::send_file(){
             resend_frame++;
         }
         resend_frame = 0;
+        cout << "send missing done" << endl;
         // Get new receive
         send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
     }
+    cout << "Send all frames done" << endl;
     cout << "Type: " << receive_packet.typePacket << endl;
      
     return;
