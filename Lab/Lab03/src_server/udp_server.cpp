@@ -39,11 +39,11 @@ void udp_server::run(){
     while(1){
         receive_header(sockfd, from);
         receive_file();
-        for (auto& t : receive_file_map){
-            std::cout << t.first << " " << t.second <<  "\n";
-        }
+        // for (auto& t : receive_file_map){
+        //     std::cout << t.first << " " << t.second <<  "\n";
+        // }
         cout << "Receive number of packets: " << receive_file_map.size() << endl;
-        cout << "Receive number of packets: " << missing_frame.size() << endl;
+        cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
     }
 }
 
