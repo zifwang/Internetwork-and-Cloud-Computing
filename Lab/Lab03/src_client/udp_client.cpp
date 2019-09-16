@@ -52,6 +52,7 @@ void udp_client::run(){
 
         // send file
         send_file();
+        cout << "Done" << endl;
     }
     else{
         cout << "enter correct file name" << endl;
@@ -133,6 +134,7 @@ void udp_client::send_file(){
         // Get new receive
         send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
     }
+    cout << "Type: " << receive_packet.typePacket << endl;
      
     return;
 }

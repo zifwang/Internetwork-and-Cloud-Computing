@@ -146,6 +146,7 @@ void udp_server::receive_missing_frame(int sockfd, struct sockaddr_in from){
     }
     // send receive all frame signal
     send_packet(sockfd, from, "Receive ALL Frames", DONE_ACK, long(-3));
+    cout << "Done" << endl;
 
     return;
 }
