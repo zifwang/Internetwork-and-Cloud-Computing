@@ -14,9 +14,10 @@ using namespace std;
 
 int main(int argc, char **argv){
     // Arguments Parse
-    ArgsOptions args = parse_args(argc, argv);
-    udp_server myServer = udp_server(args.portNumber);
+    // ArgsOptions args = parse_args(argc, argv);
+    udp_server myServer = udp_server(0);
     myServer.run();
+
 
 
     return 0;

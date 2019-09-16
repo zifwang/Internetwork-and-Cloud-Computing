@@ -152,6 +152,7 @@ void udp_server::receive_missing_frame(int sockfd, struct sockaddr_in from){
 }
 
 bool udp_server::is_missing_frame(vector<long> receive_file_sequence, vector<long> &missing_frame){
+
     missing_frame.clear();
     // sort vector
     sort(receive_file_sequence.begin(),receive_file_sequence.end());
@@ -173,6 +174,15 @@ bool udp_server::is_missing_frame(vector<long> receive_file_sequence, vector<lon
                 missing_frame.push_back(long(j));
             }
             prev = receive_file_sequence[i];
+            continue;
+        }
+        if(prev + 1 == receive_file_sequence[i]){
+            prev = receive_file_sequence[i];
+        }
+    }
+    if(receive_file_sequence[receive_file_sequence.size()-1] < total_frame){
+        for(int k = receive_file_sequence[receive_file_sequence.size()-1] + 1; k <= total_frame; k++){
+            missing_frame.push_back(long(k));
         }
     }
 
