@@ -42,7 +42,7 @@ ArgsOptions parse_args(int argc, char **argv){
 
     // Command-line args accepted by this program.
     static struct option args_options[] = {
-        {"listening port number", optional_argument, 0, 'p'},
+        {"listening_port_number", required_argument, 0, 'p'},
         {"help",       no_argument,       0, 'h'},
         {0, 0, 0, 0}
     };

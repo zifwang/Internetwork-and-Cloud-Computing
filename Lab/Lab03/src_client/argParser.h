@@ -7,11 +7,13 @@
  *          1. transferFileName: file needs to transfer
  *          2. ipAddress: address connect to server
  *          3. portNumber: listening or sending port
+ *          4. command: users command (upload, download, message)
  */
 struct ArgsOptions{
     int portNumber;
     std::string transferFileName;
     std::string ipAddress;
+    std::string command;
 };
 
 /**

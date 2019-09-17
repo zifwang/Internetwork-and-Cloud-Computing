@@ -11,6 +11,8 @@
 #include <map>
 #include "packet.h"
 
+#define DEFAULTPORT 50000                 // A Default port number
+
 using namespace std;
 
 class udp_client{
