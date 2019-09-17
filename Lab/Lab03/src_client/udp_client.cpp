@@ -38,41 +38,46 @@ udp_client::udp_client(string ipAddress, int portNumber, string command, string 
 
 void udp_client::run(){
     // Upload file
-    // if(access(file_name.c_str(),F_OK) == 0){
-    //     // get file status
-    //     struct stat statics; 
-    //     stat(file_name.c_str(),&statics);
-    //     file_size = statics.st_size;
-    //     if((file_size % DATABUFFER_SIZE) != 0){
-    //         total_frame = (file_size/DATABUFFER_SIZE) + 1;
-    //     }else total_frame = (file_size/DATABUFFER_SIZE);
-    //     printf("File size --> %ld and Total number of packets ---> %d \n", file_size, (int)total_frame);
-
-    //     // send header and receive receiver confirmation
-    //     if(!send_header(sockfd, server, from, total_frame, file_name)) error("Error send header");
-    //     cout << "Success send header" << endl;
-
-    //     // send file
-    //     send_file();
-    //     cout << "Done" << endl;
-    // }
-    // else{
-    //     cout << "enter correct file name" << endl;
-    // }
-    /**
-     * Download file
-     */
     if(send_user_request(sockfd,server,from,udp_command)){
-        receive_header(sockfd, from, server);
-        std::cout << "Successfully Receive header" << endl;
-        std::cout << "Total_Frame: " << total_frame << endl;
-        receive_file();
-        for (auto& t : receive_file_map){
-            std::cout << t.first << " " << t.second <<  "\n";
+        if(udp_command == "upload"){
+            if(access(file_name.c_str(),F_OK) == 0){
+                // get file status
+                struct stat statics; 
+                stat(file_name.c_str(),&statics);
+                file_size = statics.st_size;
+                if((file_size % (DATABUFFER_SIZE-1)) != 0){
+                    total_frame = (file_size/(DATABUFFER_SIZE-1)) + 1;
+                }else total_frame = (file_size/(DATABUFFER_SIZE-1));
+                printf("File size --> %ld and Total number of packets ---> %d \n", file_size, (int)total_frame);
+
+                // send header and receive receiver confirmation
+                if(!send_header(sockfd, server, from, total_frame, file_name)) error("Error send header");
+                cout << "Success send header" << endl;
+
+                // send file
+                send_file();
+                cout << "Done" << endl;
+            }
+            else{
+                cout << "enter correct file name" << endl;
+            }
         }
-        std::cout << "Receive number of packets: " << receive_file_map.size() << endl;
-        std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
-    } 
+        if(udp_command == "download"){
+            receive_header(sockfd, from, server);
+            std::cout << "Successfully Receive header" << endl;
+            std::cout << "Total_Frame: " << total_frame << endl;
+            receive_file();
+            for (auto& t : receive_file_map){
+                std::cout << t.first << " " << t.second <<  "\n";
+            }
+            std::cout << "Receive number of packets: " << receive_file_map.size() << endl;
+            std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
+        }
+        if(udp_command == "message"){
+            cout << "finish later" << endl;
+            // come back later
+        }
+    }
 }
 
 
@@ -107,6 +112,7 @@ void udp_client::send_file(){
 
     // Start sending file to receiver
     for(int i = 0; i < fileVector.size(); i++){
+        cout << i << endl;
         send_to_return_number = send_frame(sockfd,server,(long)i,fileVector[i]);
     }
 
@@ -499,7 +505,7 @@ vector<string> udp_client::readFile(string fileName, long fileSize, long totalFr
         // cout << endl;
 
         v.push_back(buffer);
-        bzero(buffer,chunck);
+        bzero(buffer,chunck+1);
 
         fileSize -= chunck;
     }

@@ -320,6 +320,7 @@ bool udp_server::receive_user_request(int sockfd, struct sockaddr_in from){
 
     // Get request
     receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
+    cout << "user request: " << receive_from_return_number << endl;
     if(receive_packet.typePacket == REQUEST){
         user_request = string(receive_packet.dataBuffer);
         send_packet(sockfd, from, user_request, REQUEST_ACK, long(-9));
