@@ -22,19 +22,13 @@ int main(int argc, char *argv[]){
     // argument parser
     ArgsOptions args = parse_args(argc,argv);
 
-    cout << "i: " << args.ipAddress << endl;
-    cout << "p: " << args.portNumber << endl;
-    cout << "c: " << args.command << endl;
-    cout << "f: " << args.transferFileName << endl;
-    // string fileName = "./Atlantic.txt";
-
-    // // socket
-    // udp_client myClient = udp_client(args.ipAddress,args.portNumber,"Send", fileName);
-    // // cout << myClient.get_command() << endl;
-    // // cout << myClient.get_connection_port_number() << endl;
-    // // cout << myClient.get_file_name() << endl;
-    // // cout << myClient.get_ip_address() << endl;
-    // myClient.run();
+    // socket
+    udp_client myClient = udp_client(args.ipAddress, args.portNumber, args.command, args.transferFileName);
+    cout << myClient.get_command() << endl;
+    cout << myClient.get_connection_port_number() << endl;
+    cout << myClient.get_file_name() << endl;
+    cout << myClient.get_ip_address() << endl;
+    myClient.run();
 
 
     return 0;

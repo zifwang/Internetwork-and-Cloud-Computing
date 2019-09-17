@@ -63,14 +63,14 @@ void udp_client::run(){
      * Download file
      */
     receive_header(sockfd, from, server);
-    cout << "Successfully Receive header" << endl;
-    cout << "Total_Frame: " << total_frame << endl;
+    std::cout << "Successfully Receive header" << endl;
+    std::cout << "Total_Frame: " << total_frame << endl;
     receive_file();
     for (auto& t : receive_file_map){
         std::cout << t.first << " " << t.second <<  "\n";
     }
-    cout << "Receive number of packets: " << receive_file_map.size() << endl;
-    cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
+    std::cout << "Receive number of packets: " << receive_file_map.size() << endl;
+    std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
         
 }
 
