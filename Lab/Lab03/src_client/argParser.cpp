@@ -31,7 +31,8 @@ void print_usage(){
         "           download: download file from server\n"
         "           message: send and receive short messages from server\n"
         "  -f, --filename <filename>:\n"
-        "      If set, the client will upload file with filename to server if this file exists.\n";
+        "      If set, the client will upload file with filename to server if this file exists\n";
+        "      or download file with filename from server if this file exists.\n";
 
     return;
 }
