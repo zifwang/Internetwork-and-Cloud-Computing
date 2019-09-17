@@ -62,16 +62,17 @@ void udp_client::run(){
     /**
      * Download file
      */
-    receive_header(sockfd, from, server);
-    std::cout << "Successfully Receive header" << endl;
-    std::cout << "Total_Frame: " << total_frame << endl;
-    receive_file();
-    for (auto& t : receive_file_map){
-        std::cout << t.first << " " << t.second <<  "\n";
-    }
-    std::cout << "Receive number of packets: " << receive_file_map.size() << endl;
-    std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
-        
+    if(send_user_request(sockfd,server,from,udp_command)){
+        receive_header(sockfd, from, server);
+        std::cout << "Successfully Receive header" << endl;
+        std::cout << "Total_Frame: " << total_frame << endl;
+        receive_file();
+        for (auto& t : receive_file_map){
+            std::cout << t.first << " " << t.second <<  "\n";
+        }
+        std::cout << "Receive number of packets: " << receive_file_map.size() << endl;
+        std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
+    } 
 }
 
 
@@ -226,7 +227,7 @@ bool udp_client::send_header(int sockfd, struct sockaddr_in server, struct socka
     // Check equality
     if(send_header_packet.packetSequence == receive_header_ack.packetSequence && send_header_packet.dataSize == receive_header_ack.dataSize) return true;    
 
-    return true;
+    return false;
 }
 
 void udp_client::send_packet(int sockfd, struct sockaddr_in server, string send_data, packetType type, long sequence){
@@ -253,6 +254,48 @@ void udp_client::send_packet(int sockfd, struct sockaddr_in server, string send_
     return;
 }
 
+bool udp_client::send_user_request(int sockfd, struct sockaddr_in server, struct sockaddr_in from, string command){
+    if(command == "upload"){
+        send_packet(sockfd,server,"upload",REQUEST,long(-10));
+    }
+    else if(command == "download"){
+        send_packet(sockfd,server,"download",REQUEST,long(-10));
+    }
+    else if(command == "message"){
+        send_packet(sockfd,server,"message",REQUEST,long(-10));
+    }
+    else{
+        cout << "Command not found. Please use following provided commands." << endl;
+        // A print usage function here
+        return false;
+    }
+
+    int request = 0;
+    int timeout = 0;
+    struct packet receive_packet;
+    memset(&receive_packet, 0, sizeof(receive_packet));
+
+    request = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
+
+    while(receive_packet.typePacket != REQUEST_ACK){
+        send_packet(sockfd,server,command,REQUEST,long(-10));
+        request = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
+        if(timeout > 20){
+            // Change
+            std::cout << "Request is not successfully accepted by server." << endl;
+            // Print useage
+            return false; 
+        }
+    }
+
+    if(string(receive_packet.dataBuffer) == command && receive_packet.typePacket == REQUEST_ACK){
+        cout << "Request is successfully received by server" << endl;
+        return true;
+    }
+
+    return false;
+}
+        
 void udp_client::missing_frame_packet_interpreter(struct packet receive_packet, vector<long>& missing_frame){
     string missing_frame_string = "";
     for(int i = 0; i < (int)receive_packet.dataSize; i++){
@@ -323,6 +366,9 @@ void udp_client::receive_header(int sockfd, struct sockaddr_in from, struct sock
 
     // Update typePacket of header_packet
     header_packet.typePacket = (enum packetType)REQUEST_ACK;
+
+    cout << "File name: " << file_name << endl;
+    cout << "Total frames: " << total_frame << endl;
 
     header = sendto(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &server, sizeof(server));
     while(header < 0){

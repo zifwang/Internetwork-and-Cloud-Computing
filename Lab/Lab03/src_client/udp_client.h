@@ -41,6 +41,8 @@ class udp_client{
         
         void send_packet(int sockfd, struct sockaddr_in from, string send_data, packetType type, long sequence);
 
+        bool send_user_request(int sockfd, struct sockaddr_in server, struct sockaddr_in from, string command);
+        
         void missing_frame_packet_interpreter(struct packet receive_packet, vector<long>& missing_frame);
 
         void receive_file();
