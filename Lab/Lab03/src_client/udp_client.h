@@ -70,7 +70,7 @@ class udp_client{
         struct sockaddr_in server, from;
         socklen_t sockaddr_in_length = sizeof(struct sockaddr_in);
         struct hostent *hp;
-        char buffer[PACKET_SIZE];
+        // char buffer[PACKET_SIZE];
 
 
         // file status
