@@ -40,47 +40,51 @@ void udp_server::run(){
         /**
          * Receive file part
          */
-        // receive_header(sockfd, from);
-        // cout << "Successfully Receive header" << endl;
-        // cout << "Total_Frame: " << total_frame << endl;
-        // receive_file();
-        // // for (auto& t : receive_file_map){
-        // //     std::cout << t.first << " " << t.second <<  "\n";
-        // // }
-        // cout << "Receive number of packets: " << receive_file_map.size() << endl;
-        // cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
-        
-
-        /**
-         * Send file part
-         */
         if(receive_user_request(sockfd,from)){
-            file_name = "Atlantic.txt";
-            if(access(file_name.c_str(),F_OK) == 0){
-                // get file status
-                struct stat statics; 
-                stat(file_name.c_str(),&statics);
-                file_size = statics.st_size;
-                if((file_size % DATABUFFER_SIZE) != 0){
-                    total_frame = (file_size/DATABUFFER_SIZE) + 1;
-                }else total_frame = (file_size/DATABUFFER_SIZE);
-                printf("File size --> %ld and Total number of packets ---> %d \n", file_size, (int)total_frame);
-
-                // send header and receive receiver confirmation
-                if(!send_header(sockfd, from, total_frame, file_name)) error("Error send header");
-                cout << "Success send header" << endl;
-
-                // send file
-                send_file();
-                cout << "Done" << endl;
-                break;
+            if(user_request == "upload"){
+                receive_header(sockfd, from);
+                cout << "Successfully Receive header" << endl;
+                cout << "Total_Frame: " << total_frame << endl;
+                receive_file();
+                // for (auto& t : receive_file_map){
+                //     std::cout << t.first << " " << t.second <<  "\n";
+                // }
+                cout << "Receive number of packets: " << receive_file_map.size() << endl;
+                cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
             }
-            else{
-                cout << "enter correct file name" << endl;
+            if(user_request == "download"){
+                file_name = "Atlantic.txt";
+                if(access(file_name.c_str(),F_OK) == 0){
+                    // get file status
+                    struct stat statics; 
+                    stat(file_name.c_str(),&statics);
+                    file_size = statics.st_size;
+                    if((file_size % DATABUFFER_SIZE) != 0){
+                        total_frame = (file_size/DATABUFFER_SIZE) + 1;
+                    }else total_frame = (file_size/DATABUFFER_SIZE);
+                    printf("File size --> %ld and Total number of packets ---> %d \n", file_size, (int)total_frame);
+
+                    // send header and receive receiver confirmation
+                    if(!send_header(sockfd, from, total_frame, file_name)) error("Error send header");
+                    cout << "Success send header" << endl;
+
+                    // send file
+                    send_file();
+                    cout << "Done" << endl;
+                    break;
+                }
+                else{
+                    // Send file list to user
+                    cout << "enter correct file name" << endl;
+                }
             }
+            if(user_request == "message"){
+                continue;
+            }
+            
         }
-
     }
+    return;
 }
 
 
@@ -146,7 +150,7 @@ void udp_server::send_packet(int sockfd, struct sockaddr_in from, string send_da
 
     // send packet
     send_to_return_number = sendto(sockfd,&(packet_send),sizeof(packet_send),0,(const struct sockaddr *) &from, sizeof(from));
-
+    cout << send_to_return_number << endl;
     while(send_to_return_number < 0){
         if(timeOut_couter > 20){
             error("Error in sending packet");
@@ -175,7 +179,7 @@ bool udp_server::send_header(int sockfd, struct sockaddr_in from, long totalFram
     // udp send
     // send_header_number = sendto(sockfd,&(send_header_packet),sizeof(send_header_packet),0,(const struct sockaddr *) &from, sizeof(from));
     send_packet(sockfd,from,fileName,REQUEST,totalFrames);
-    // cout << "Header send by server " << send_header_number << endl;
+    cout << "Header send by server " << send_header_number << endl;
     // udp receive
     send_header_number = recvfrom(sockfd, &(receive_header_ack), sizeof(receive_header_ack), 0, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
     // Resend
@@ -224,7 +228,7 @@ void udp_server::receive_file(){
 
     while(receive_packet.typePacket != DONE){
         cout << receive_from_return_number << endl;
-        if(receive_packet.packetSequence >= 0){
+        if(receive_packet.packetSequence >= 0 && receive_packet.typePacket == SEND){
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
             receive_file_sequence.push_back(receive_packet.packetSequence);
@@ -320,11 +324,11 @@ bool udp_server::receive_user_request(int sockfd, struct sockaddr_in from){
 
     // Get request
     receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
-    cout << "user request: " << receive_from_return_number << endl;
+    cout << receive_from_return_number << endl;
     if(receive_packet.typePacket == REQUEST){
         user_request = string(receive_packet.dataBuffer);
-        send_packet(sockfd, from, user_request, REQUEST_ACK, long(-9));
         cout << "user_request: " << user_request << endl;
+        send_packet(sockfd, from, user_request, REQUEST_ACK, long(-9));
         return true;
     }
 
