@@ -19,7 +19,6 @@ class udp_client{
     public:
         udp_client(string ipAddress, int portNumber, string command, string fileName);
 
-
         void run();
 
         string get_ip_address();
@@ -40,12 +39,19 @@ class udp_client{
 
         bool send_header(int sockfd, struct sockaddr_in server, struct sockaddr_in from, long totalFrames, string fileName);
         
+        void send_packet(int sockfd, struct sockaddr_in from, string send_data, packetType type, long sequence);
+
         void missing_frame_packet_interpreter(struct packet receive_packet, vector<long>& missing_frame);
 
         void receive_file();
 
-        int receive_header(int sockfd, struct sockaddr_in from, struct sockaddr_in server, struct packet &header_packet);
-        // int receive_frame();
+        void receive_header(int sockfd, struct sockaddr_in from, struct sockaddr_in server);
+        
+        void receive_missing_frame(int sockfd, struct sockaddr_in from, struct sockaddr_in server);
+        
+        bool is_missing_frame(vector<long> receive_file_sequence, vector<long> &missing_frame);
+
+        void request_to_resend_missing_frame(int sockfd, struct sockaddr_in from, vector<long> missing_frame);
 
         void error(const char *msg);
 
@@ -70,6 +76,7 @@ class udp_client{
         long file_size = 0;
         long total_frame = 0;
         map<long,string> receive_file_map;
+        vector<long> receive_file_sequence;
         vector<long> missing_frame;
 
 };
