@@ -17,6 +17,8 @@
 
 using namespace std;
 
+#define DEFAULTPORT 50000                 // A Default port number
+
 class udp_server{
     public:
         udp_server();
@@ -51,7 +53,7 @@ class udp_server{
         void receive_missing_frame(int sockfd, struct sockaddr_in from);
 
         bool is_missing_frame(vector<long> receive_file_sequence, vector<long> &missing_frame);
-        
+
         void request_to_resend_missing_frame(int sockfd, struct sockaddr_in from, vector<long> missing_frame);
 
         void error(const char *msg);
