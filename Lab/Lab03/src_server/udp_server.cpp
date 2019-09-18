@@ -274,12 +274,14 @@ void udp_server::missing_frame_packet_interpreter(struct packet receive_packet, 
 void udp_server::receive_file(){
     // // Declare variables
     struct packet receive_packet;
-    struct packet send_packet;
+    // struct packet send_packet;
     int receive_from_return_number;
     memset(&receive_packet, 0, sizeof(receive_packet));
-    memset(&send_packet, 0, sizeof(send_packet));
+    // memset(&send_packet, 0, sizeof(send_packet));
     receive_file_map.clear();
     receive_file_sequence.clear();
+    // FILE *file;
+    // fopen(file_name.c_str(),"wb");
     // int unreceive_counter = 0;
 
     // // Get file
@@ -320,11 +322,11 @@ void udp_server::receive_file(){
         else{
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
-            receive_file_sequence.push_back(receive_packet.packetSequence);
+            // receive_file_sequence.push_back(receive_packet.packetSequence);
+            // fwrite(receive_packet.dataBuffer, 1, receive_packet.dataSize, file);
         }
     }
-    // cout << "hear" << endl;
-    // cout << receive_file_sequence.size() << endl;
+    // fclose(file);
 
     return;
 }
@@ -549,4 +551,16 @@ void udp_server::printPacket(struct packet myPacket){
     std::cout << "File Type: " << myPacket.typePacket << endl;
     std::cout << "File DataSize: " << myPacket.dataSize << endl;
     std::cout << "File Data: " << string(myPacket.dataBuffer) << endl;
+}
+
+void udp_server::writeFile(map<long,string> file_map, string fileName){
+    std::map<long,string>::iterator it=file_map.begin();
+    FILE *filetowrite;
+	filetowrite=fopen(fileName.c_str(),"w");
+	while(it != file_map.end()){
+        fwrite(it->second.c_str(),sizeof(it->second),1,filetowrite);
+        it++;
+    }
+    fclose(filetowrite);
+    std::cout << "Write file done" << endl;
 }

@@ -306,11 +306,14 @@ void udp_client::receive_file(){
     // struct packet send_packet;
     int receive_from_return_number;
     memset(&receive_packet, 0, sizeof(receive_packet));
+    // FILE *file;
+    // file = fopen(file_name.c_str(), "wb");
     // memset(&send_packet, 0, sizeof(send_packet));
     
     for(long i = 0; i < total_frame; i++){
         if(i == total_frame){
             cout << "Download all file" << endl;
+            break;
         }
         memset(&receive_packet, 0, sizeof(receive_packet));
         recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);  
@@ -320,10 +323,11 @@ void udp_client::receive_file(){
 		else{
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
-            receive_file_sequence.push_back(receive_packet.packetSequence);
+            // receive_file_sequence.push_back(receive_packet.packetSequence);
+            // fwrite(receive_packet.dataBuffer, 1, receive_packet.dataSize, file); 
         }
     }
-
+    // fclose(file);
 
 
     // // Get file
@@ -525,7 +529,7 @@ void udp_client::error(const char *msg){
 vector<string> udp_client::readFile(string fileName, long fileSize, long totalFrame){
     
     FILE *file;
-    vector<string> v;
+    std::vector<string> v;
     char *buffer;
     long file_size = fileSize;
 
@@ -553,4 +557,17 @@ vector<string> udp_client::readFile(string fileName, long fileSize, long totalFr
     fclose(file);
 
     return v;
+}
+
+void udp_client::writeFile(map<long,string> receive_file_map, string file_name){
+    std::map<long,string>::iterator it=receive_file_map.begin();
+    FILE *filetowrite;
+    file_name = file_name + "useFunc";
+	filetowrite=fopen(file_name.c_str(),"w");
+	while(it !=receive_file_map.end()){
+		fwrite(it->second.c_str(),sizeof(it->second),1,filetowrite);
+		it++;
+	}
+    fclose(filetowrite);
+    cout << "Write file Done" << endl;
 }

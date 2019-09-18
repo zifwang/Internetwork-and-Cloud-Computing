@@ -9,6 +9,7 @@
 #include <string.h>
 #include <vector>
 #include <map>
+#include <iterator>
 #include "packet.h"
 
 #define DEFAULTPORT 50000                 // A Default port number
@@ -60,6 +61,8 @@ class udp_client{
         void error(const char *msg);
 
         vector<string> readFile(string fileName, long fileSize, long totalFrame);
+
+        void writeFile(map<long,string> receive_file_map, string file_name);
 
         /**
          * udp_client private variables
