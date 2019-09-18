@@ -52,12 +52,6 @@ void udp_server::run(){
                 std::cout << "                                  Total Frame: " << total_frame << endl;
                 receive_file();
                 std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
-                // for (auto& t : receive_file_map){
-                //     std::cout << t.first << " " << t.second <<  "\n";
-                // }
-
-                // std::cout << "Receive number of packets: " << receive_file_map.size() << endl;
-                // std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
             }
 
             /**
@@ -284,6 +278,8 @@ void udp_server::receive_file(){
     int receive_from_return_number;
     memset(&receive_packet, 0, sizeof(receive_packet));
     memset(&send_packet, 0, sizeof(send_packet));
+    receive_file_map.clear();
+    receive_file_sequence.clear();
     // int unreceive_counter = 0;
 
     // // Get file
@@ -312,6 +308,7 @@ void udp_server::receive_file(){
     for(int i = 0; i <= total_frame; i++){
         if(i == total_frame){
             cout << "Receive All Upload File" << endl;
+            break;
         }
         memset(&receive_packet, 0, sizeof(receive_packet));
         recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);  
@@ -326,6 +323,8 @@ void udp_server::receive_file(){
             receive_file_sequence.push_back(receive_packet.packetSequence);
         }
     }
+    // cout << "hear" << endl;
+    // cout << receive_file_sequence.size() << endl;
 
     return;
 }
