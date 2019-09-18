@@ -9,6 +9,7 @@
 #include <string.h>
 #include <vector>
 #include <map>
+#include <iterator>
 #include "packet.h"
 
 #define DEFAULTPORT 50000                 // A Default port number
@@ -60,6 +61,18 @@ class udp_client{
         void error(const char *msg);
 
         vector<string> readFile(string fileName, long fileSize, long totalFrame);
+
+        void writeFile(map<long,string> receive_file_map, string file_name){
+            std::map<long,string>::iterator it=receive_file_map.begin();
+            FILE *filetowrite;
+            file_name = file_name + "useFunc";
+	        filetowrite=fopen(file_name.c_str(),"w");
+	        while(it !=receive_file_map.end()){
+		        fwrite(it->second.c_str(),sizeof(it->second),1,filetowrite);
+		        it++;
+	        }
+            fclose(filetowrite);
+        }
 
         /**
          * udp_client private variables

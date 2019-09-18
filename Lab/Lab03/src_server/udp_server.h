@@ -70,6 +70,17 @@ class udp_server{
 
         vector<string> readFile(string fileName, long fileSize, long totalFrame);
 
+        void writeFile(map<long,string> receive_file_map, string file_name){
+            std::map<long,string>::iterator it=receive_file_map.begin();
+            FILE *filetowrite;
+	        filetowrite=fopen(file_name.c_str(),"w");
+	        while(it !=receive_file_map.end()){
+		        fwrite(it->second.c_str(),sizeof(it->second),1,filetowrite);
+		        it++;
+	        }
+            fclose(filetowrite);
+        }
+
         /**
          * udp_server private client
          */

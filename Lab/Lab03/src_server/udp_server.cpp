@@ -280,10 +280,12 @@ void udp_server::missing_frame_packet_interpreter(struct packet receive_packet, 
 void udp_server::receive_file(){
     // // Declare variables
     struct packet receive_packet;
-    struct packet send_packet;
+    // struct packet send_packet;
     int receive_from_return_number;
     memset(&receive_packet, 0, sizeof(receive_packet));
-    memset(&send_packet, 0, sizeof(send_packet));
+    // memset(&send_packet, 0, sizeof(send_packet));
+    FILE *file;
+    file = fopen(file_name.c_str(), "wb");
     // int unreceive_counter = 0;
 
     // // Get file
@@ -324,9 +326,11 @@ void udp_server::receive_file(){
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
             receive_file_sequence.push_back(receive_packet.packetSequence);
+            fwrite(receive_packet.dataBuffer, 1, receive_packet.dataSize, file);
         }
     }
-
+    fclose(file);
+    
     return;
 }
 

@@ -311,6 +311,8 @@ void udp_client::receive_file(){
     // struct packet send_packet;
     int receive_from_return_number;
     memset(&receive_packet, 0, sizeof(receive_packet));
+    FILE *file;
+    file = fopen(file_name.c_str(), "wb");
     // memset(&send_packet, 0, sizeof(send_packet));
     
     for(long i = 0; i < total_frame; i++){
@@ -326,9 +328,10 @@ void udp_client::receive_file(){
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
             receive_file_sequence.push_back(receive_packet.packetSequence);
+            fwrite(receive_packet.dataBuffer, 1, receive_packet.dataSize, file); 
         }
     }
-
+    fclose(file);
 
 
     // // Get file
