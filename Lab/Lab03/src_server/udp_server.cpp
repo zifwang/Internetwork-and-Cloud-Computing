@@ -60,7 +60,7 @@ void udp_server::run(){
             * Client download file part
             */
             if(user_request == "download"){
-                file_name = "Atlantic.txt";
+                bool flag = receive_user_download_file_request(sockfd,from);
                 if(access(file_name.c_str(),F_OK) == 0){
                     // get file status
                     struct stat statics; 
@@ -184,9 +184,11 @@ bool udp_server::send_header(int sockfd, struct sockaddr_in from, long totalFram
     strcpy(send_header_packet.dataBuffer,fileName.c_str());
 
     // udp send
+    cout << "hear" << endl;
     // send_header_number = sendto(sockfd,&(send_header_packet),sizeof(send_header_packet),0,(const struct sockaddr *) &from, sizeof(from));
     send_packet(sockfd,from,fileName,DOWNLOAD_HEADER_REQUEST,totalFrames);
-    std::cout << "Header send by server " << send_header_number << endl;
+    // std::cout << "Header send by server " << send_header_number << endl;
+    cout << "pass" << endl;
     // udp receive
     send_header_number = recvfrom(sockfd, &(receive_header_ack), sizeof(receive_header_ack), 0, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
     // Resend
@@ -349,6 +351,30 @@ bool udp_server::receive_user_request(int sockfd, struct sockaddr_in from){
 
     return false;
 }
+
+bool udp_server::receive_user_download_file_request(int sockfd, struct sockaddr_in from){
+    struct packet receive_packet;
+    int receive_from_return_number;
+    memset(&receive_packet, 0, sizeof(receive_packet));
+    // Get request
+    receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
+    std::cout << receive_from_return_number << endl;
+    while(receive_packet.typePacket != DOWNLOAD_FILE_REQUEST_ACK_CLIENT){
+        file_name = string(receive_packet.dataBuffer);
+        cout << file_name << endl;
+        send_packet(sockfd,from,file_name,DOWNLOAD_FILE_REQUEST_ACK,long(-3));
+        memset(&receive_packet, 0, sizeof(receive_packet));
+        receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
+    }
+    // Check file
+    if(access(file_name.c_str(),F_OK) == 0) return true;
+    else{
+        // Send file list to client
+        cout << "filenot existed" << endl;
+    }
+    return false;
+}
+
 
 bool udp_server::is_missing_frame(vector<long> receive_file_sequence, vector<long> &missing_frame){
     std::cout << "Check is_missing_frame" << endl;

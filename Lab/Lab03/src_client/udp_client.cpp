@@ -63,7 +63,8 @@ void udp_client::run(){
             }
         }
         if(udp_command == "download"){
-            request_to_download_file(sockfd,from,server);
+            bool flg = request_to_download_file(sockfd,from,server);
+            cout << flg;
             receive_header(sockfd, from, server);
             std::cout << "Successfully Receive header" << endl;
             std::cout << "Total_Frame: " << total_frame << endl;

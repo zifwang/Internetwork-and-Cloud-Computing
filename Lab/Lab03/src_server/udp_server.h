@@ -58,6 +58,8 @@ class udp_server{
 
         bool receive_user_request(int sockfd, struct sockaddr_in from);
 
+        bool receive_user_download_file_request(int sockfd, struct sockaddr_in from);
+
         bool is_missing_frame(vector<long> receive_file_sequence, vector<long> &missing_frame);
 
         void request_to_resend_missing_frame(int sockfd, struct sockaddr_in from, vector<long> missing_frame);

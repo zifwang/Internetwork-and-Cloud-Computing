@@ -18,6 +18,9 @@ enum packetType{
     DOWNLOAD_REQUEST_ACK,                    // server receives download request from client and confirms it
     DOWNLOAD_HEADER_REQUEST,                 // server sends header request to client
     DOWNLOAD_HEADER_REQUEST_ACK,             // client receives DOWNLOAD_HEADER_REQUEST and confirms to server
+    DOWNLOAD_FILE_REQUEST,                   // client send DOWNLOAD_FILE_REQUEST to server with provided filename
+    DOWNLOAD_FILE_REQUEST_ACK,               // server receives DOWNLOAD_FILE_REQUEST and confirm it
+    DOWNLOAD_FILE_REQUEST_ACK_CLIENT,        // client confirm DOWNLOAD_FILE_REQUEST_ACK
     UPLOAD_REQUEST,                          // client send upload request to server to upload file
     UPLOAD_REQUEST_ACK,                      // server receives upload request from client and confirms it
     UPLOAD_HEADER_REQUEST,                   // client sends request to upload header to server
