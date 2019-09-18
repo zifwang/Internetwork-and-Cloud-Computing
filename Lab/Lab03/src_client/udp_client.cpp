@@ -237,8 +237,10 @@ bool udp_client::send_user_request(int sockfd, struct sockaddr_in server, struct
 
     request = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
 
+    bool flag = receive_packet.typePacket != UPLOAD_REQUEST_ACK || receive_packet.typePacket != DOWNLOAD_REQUEST_ACK || receive_packet.typePacket != MESSAGE_ACK;
+
     //  || receive_packet.typePacket != DOWNLOAD_REQUEST_ACK || receive_packet.typePacket != MESSAGE_ACK
-    while(receive_packet.typePacket != UPLOAD_REQUEST_ACK || receive_packet.typePacket != DOWNLOAD_REQUEST_ACK){
+    while(!flag){
         send_packet(sockfd,server,command,tmp,long(-10));
         memset(&receive_packet, 0, sizeof(receive_packet));
         request = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
