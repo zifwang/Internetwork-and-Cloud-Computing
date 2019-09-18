@@ -561,13 +561,14 @@ void udp_server::printPacket(struct packet myPacket){
 void udp_server::writeFile(map<long,string> file_map, string fileName){
     // std::map<long,string>::iterator it=file_map.begin();
     FILE *filetowrite;
-	filetowrite=fopen(fileName.c_str(),"wb`");
+	filetowrite=fopen(fileName.c_str(),"wb");
 	// while(it != file_map.end()){
     //     fwrite(it->second.c_str(),sizeof(it->second),1,filetowrite);
     //     it++;
     // }
     for(auto t : file_map){
         cout << "Frame: " << t.first << endl;
+        cout << "Size: " << sizeof(t.second) << endl;
         cout << t.second << endl;
         fwrite(t.second.c_str(),sizeof(char),sizeof(t.second),filetowrite);
     }
