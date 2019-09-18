@@ -117,6 +117,11 @@ void udp_client::send_file(){
         // send_packet(sockfd,server,fileVector[i],UPLOAD,(long)i);
         // std::memset(&send_my_packet, 0, sizeof(send_my_packet));
         ack_seq = 0;
+        if(i == 0){
+            time_t now = time(0);
+            char* dt = ctime(&now);
+            cout << "Time send the frist frame is: " << dt << endl;
+        }
         // send_my_packet.packetSequence = long(i);
         // send_my_packet.typePacket = UPLOAD;
         // send_my_packet.dataSize = fileVector[i].length();
@@ -322,6 +327,11 @@ void udp_client::receive_file(){
 
 		if ((receive_packet.packetSequence < i) || (receive_packet.packetSequence > i)) i--;
 		else{
+            if(i == total_frame - 1){
+                time_t now = time(0);
+                char* dt = ctime(&now);
+                cout << "Time get the last frame is: " << dt << endl;
+            }
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
             // receive_file_sequence.push_back(receive_packet.packetSequence);

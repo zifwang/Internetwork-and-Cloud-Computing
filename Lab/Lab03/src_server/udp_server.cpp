@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <iostream>
+#include <ctime>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,6 +120,11 @@ void udp_server::send_file(){
     for(int i = 0; i < fileVector.size(); i++){
         // send_packet(sockfd,from,fileVector[i],DOWNLOAD,long(i));
         ack_seq = 0;
+        if(i == 0){
+            time_t now = time(0);
+            char* dt = ctime(&now);
+            cout << "Time send the frist frame is: " << dt << endl;
+        }
         send_packet(sockfd,from,fileVector[i],UPLOAD,long(i));  //send the frame
         recvfrom(sockfd, &(ack_seq), sizeof(ack_seq), 1, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);	//Recieve the acknowledgement
 
@@ -325,6 +331,11 @@ void udp_server::receive_file(){
 			i--;
         }
         else{
+            if(i == total_frame - 1){
+                time_t now = time(0);
+                char* dt = ctime(&now);
+                cout << "Time get the last frame is: " << dt << endl;
+            }
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
             receive_file_sequence.push_back(receive_packet.packetSequence);
