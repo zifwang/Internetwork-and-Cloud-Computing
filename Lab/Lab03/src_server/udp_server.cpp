@@ -561,7 +561,7 @@ void udp_server::printPacket(struct packet myPacket){
 void udp_server::writeFile(map<long,string> file_map, string fileName){
     // std::map<long,string>::iterator it=file_map.begin();
     FILE *filetowrite;
-	filetowrite=fopen(fileName.c_str(),"w");
+	filetowrite=fopen(fileName.c_str(),"wb`");
 	// while(it != file_map.end()){
     //     fwrite(it->second.c_str(),sizeof(it->second),1,filetowrite);
     //     it++;
@@ -569,7 +569,7 @@ void udp_server::writeFile(map<long,string> file_map, string fileName){
     for(auto t : file_map){
         cout << "Frame: " << t.first << endl;
         cout << t.second << endl;
-        fwrite(t.second.c_str(),1,sizeof(t.second),filetowrite);
+        fwrite(t.second.c_str(),sizeof(char),sizeof(t.second),filetowrite);
     }
     fclose(filetowrite);
     std::cout << "Write file done" << endl;
