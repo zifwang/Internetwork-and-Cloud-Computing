@@ -70,6 +70,7 @@ void udp_client::run(){
             std::cout << "                                  Total Frames: " << total_frame << endl;
             receive_file();
             std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
+            // writeFile(receive_file_map,file_name);
             // for (auto& t : receive_file_map){
             //     std::cout << t.first << " " << t.second <<  "\n";
             // }
@@ -311,8 +312,8 @@ void udp_client::receive_file(){
     // struct packet send_packet;
     int receive_from_return_number;
     memset(&receive_packet, 0, sizeof(receive_packet));
-    FILE *file;
-    file = fopen(file_name.c_str(), "wb");
+    // FILE *file;
+    // file = fopen(file_name.c_str(), "wb");
     // memset(&send_packet, 0, sizeof(send_packet));
     
     for(long i = 0; i < total_frame; i++){
@@ -327,11 +328,11 @@ void udp_client::receive_file(){
 		else{
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
-            receive_file_sequence.push_back(receive_packet.packetSequence);
-            fwrite(receive_packet.dataBuffer, 1, receive_packet.dataSize, file); 
+            // receive_file_sequence.push_back(receive_packet.packetSequence);
+            // fwrite(receive_packet.dataBuffer, 1, receive_packet.dataSize, file); 
         }
     }
-    fclose(file);
+    // fclose(file);
 
 
     // // Get file
@@ -561,4 +562,17 @@ vector<string> udp_client::readFile(string fileName, long fileSize, long totalFr
     fclose(file);
 
     return v;
+}
+
+void udp_client::writeFile(map<long,string> receive_file_map, string file_name){
+    std::map<long,string>::iterator it=receive_file_map.begin();
+    FILE *filetowrite;
+    file_name = file_name + "useFunc";
+	filetowrite=fopen(file_name.c_str(),"w");
+	while(it !=receive_file_map.end()){
+		fwrite(it->second.c_str(),sizeof(it->second),1,filetowrite);
+		it++;
+	}
+    fclose(filetowrite);
+    cout << "Write file Done" << endl;
 }
