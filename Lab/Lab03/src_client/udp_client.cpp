@@ -252,7 +252,7 @@ void udp_client::send_packet(int sockfd, struct sockaddr_in server, string send_
 
     // send packet
     send_to_return_number = sendto(sockfd,&(packet_send),sizeof(packet_send),0,(const struct sockaddr *) &server, sizeof(server));
-    cout << send_to_return_number << endl;
+    cout << "Send to type: " << type << ", sendtoreturn number: " << send_to_return_number << endl;
     while(send_to_return_number < 0){
         if(timeOut_couter > 20){
             error("Error in sending packet");
@@ -285,7 +285,6 @@ bool udp_client::send_user_request(int sockfd, struct sockaddr_in server, struct
         return false;
     }
 
-    // cout << "hear1" << endl;
     int request = 0;
     int timeout = 0;
     struct packet receive_packet;
@@ -293,11 +292,10 @@ bool udp_client::send_user_request(int sockfd, struct sockaddr_in server, struct
 
     request = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
 
-    // cout << "hear2" << endl;
-    // cout << request << endl;
-
-    while(receive_packet.typePacket != DOWNLOAD_REQUEST_ACK || receive_packet.typePacket != UPLOAD_HEADER_REQUEST_ACK || receive_packet.typePacket != MESSAGE_ACK){
+    //  || receive_packet.typePacket != DOWNLOAD_REQUEST_ACK || receive_packet.typePacket != MESSAGE_ACK
+    while(receive_packet.typePacket != UPLOAD_REQUEST_ACK){
         send_packet(sockfd,server,command,tmp,long(-10));
+        memset(&receive_packet, 0, sizeof(receive_packet));
         request = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
         if(timeout > 20){
             // Change
@@ -307,13 +305,9 @@ bool udp_client::send_user_request(int sockfd, struct sockaddr_in server, struct
         }
     }
 
-    // cout << "hear3" << endl;
-    if(string(receive_packet.dataBuffer) == command && receive_packet.typePacket == tmp){
-        std::cout << "Request is successfully received by server" << endl;
-        return true;
-    }
+    std::cout << "Request is successfully received by server" << endl;
 
-    return false;
+    return true;
 }
         
 void udp_client::missing_frame_packet_interpreter(struct packet receive_packet, vector<long>& missing_frame){
