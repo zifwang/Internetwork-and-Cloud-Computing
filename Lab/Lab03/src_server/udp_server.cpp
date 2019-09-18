@@ -47,9 +47,9 @@ void udp_server::run(){
                 cout << "Successfully Receive header" << endl;
                 cout << "Total_Frame: " << total_frame << endl;
                 receive_file();
-                // for (auto& t : receive_file_map){
-                //     std::cout << t.first << " " << t.second <<  "\n";
-                // }
+                for (auto& t : receive_file_map){
+                    std::cout << t.first << " " << t.second <<  "\n";
+                }
                 cout << "Receive number of packets: " << receive_file_map.size() << endl;
                 cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
             }
