@@ -62,7 +62,7 @@ class udp_client{
 
         vector<string> readFile(string fileName, long fileSize, long totalFrame);
 
-        void writeFile(map<long,string> receive_file_map, string file_name);
+        void writeFile(map<long,string> file_map, string fileName);
 
         /**
          * udp_client private variables

@@ -560,15 +560,20 @@ vector<string> udp_client::readFile(string fileName, long fileSize, long totalFr
     return v;
 }
 
-void udp_client::writeFile(map<long,string> receive_file_map, string file_name){
-    std::map<long,string>::iterator it=receive_file_map.begin();
+void udp_client::writeFile(map<long,string> file_map, string fileName){
+    // std::map<long,string>::iterator it=file_map.begin();
     FILE *filetowrite;
-    file_name = file_name;
-	filetowrite=fopen(file_name.c_str(),"wb");
-	while(it !=receive_file_map.end()){
-		fwrite(it->second.c_str(),sizeof(char),sizeof(it->second),filetowrite);
-		it++;
-	}
+	filetowrite=fopen(fileName.c_str(),"wb");
+	// while(it != file_map.end()){
+    //     fwrite(it->second.c_str(),sizeof(it->second),1,filetowrite);
+    //     it++;
+    // }
+    for(auto t : file_map){
+        cout << "Frame: " << t.first << endl;
+        cout << "Size: " << t.second.length() << endl;
+        cout << t.second << endl;
+        fwrite(t.second.c_str(),sizeof(char),t.second.length(),filetowrite);
+    }
     fclose(filetowrite);
-    cout << "Write file Done" << endl;
+    std::cout << "Write file done" << endl;
 }
