@@ -117,32 +117,56 @@ void udp_server::send_file(){
         send_packet(sockfd,from,fileVector[i],DOWNLOAD,long(i));
     }
     // Send Done file transmission done signal to receiver and this Done must be send
-    for(int i = 0; i < 10; i++){
+    int timeout = 0;
+    send_packet(sockfd,from,"DONE",DONE_DOWNLOAD,long(-1));
+    send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+    cout << "hear" << endl;
+    while(receive_packet.typePacket != DONE_DOWNLOAD_ACK){
         send_packet(sockfd,from,"DONE",DONE_DOWNLOAD,long(-1));
+        send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+        if(timeout > 20){
+            error("timeout");
+        }
+        timeout++;
     }
+    timeout = 0;
 
     std::cout << "send first file done" << endl;
 
     send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
     std::cout << send_to_return_number << endl;
-    while(receive_packet.typePacket != DONE_DOWNLOAD_ACK){
+    while(receive_packet.typePacket != DOWNLOAD_FINISH){
         missing_frame.clear();
         while(receive_packet.typePacket != DOWNLOAD_MISSING_SEND_DONE){
             missing_frame_packet_interpreter(receive_packet,missing_frame);
             memset(&receive_packet, 0, sizeof(receive_packet));
             send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
         }
+        send_packet(sockfd,from,"DOWNLOAD_MISSING_ACK",DOWNLOAD_MISSING_ACK,long(-10));
         std::cout << "get missing done" << endl;
         // Send missing
         for(int i = 0; i < missing_frame.size(); i++){
             send_packet(sockfd,from,fileVector[int(missing_frame[i])],DOWNLOAD,missing_frame[i]);
         }
         // Send Done file transmission done signal to receiver and this Done must be send
-        send_packet(sockfd,from,"DONE",DONE_DOWNLOAD,long(-1));
+        // send_packet(sockfd,from,"DONE",DONE_DOWNLOAD,long(-1));
+        send_packet(sockfd,from,"DONE_DOWNLOAD_MISSING",DONE_DOWNLOAD_MISSING,long(-1));
+        send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+        while(receive_packet.typePacket != DONE_DOWNLOAD_MISSING_ACK){
+            send_packet(sockfd,from,"DONE_DOWNLOAD_MISSING",DONE_DOWNLOAD_MISSING,long(-1));
+            send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+            if(timeout > 20){
+                error("timeout");
+            }
+            timeout++;
+        }
+        timeout = 0;
         std::cout << "send missing done" << endl;
+        memset(&receive_packet, 0, sizeof(receive_packet));
         // Get new receive
         send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
     }
+    send_packet(sockfd,from,"DOWNLOAD_FINISH_ACK",DOWNLOAD_FINISH_ACK,long(-1));
     std::cout << "Send all frames done" << endl;
     std::cout << "Type: " << receive_packet.typePacket << endl;
 

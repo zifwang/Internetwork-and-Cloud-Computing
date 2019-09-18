@@ -274,10 +274,10 @@ void udp_client::missing_frame_packet_interpreter(struct packet receive_packet, 
 void udp_client::receive_file(){
     // Declare variables
     struct packet receive_packet;
-    struct packet send_packet;
+    // struct packet send_packet;
     int receive_from_return_number;
     memset(&receive_packet, 0, sizeof(receive_packet));
-    memset(&send_packet, 0, sizeof(send_packet));
+    // memset(&send_packet, 0, sizeof(send_packet));
 
     // Get file
     receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
@@ -295,6 +295,8 @@ void udp_client::receive_file(){
         memset(&receive_packet, 0, sizeof(receive_packet));
         receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
     }
+    send_packet(sockfd,server,"DONE_DOWNLOAD_ACK",DONE_DOWNLOAD_ACK,long(-10));
+
     std::cout << "Get First file done" << endl;
 
     // Receive Missing frame
@@ -349,7 +351,7 @@ void udp_client::receive_missing_frame(int sockfd, struct sockaddr_in from, stru
     memset(&receive_packet, 0, sizeof(receive_packet));
 
     while(is_missing_frame(receive_file_sequence, missing_frame)){
-        request_to_resend_missing_frame(sockfd,server,missing_frame);
+        request_to_resend_missing_frame(sockfd,server,from,missing_frame);
         receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
         while(receive_packet.typePacket != DONE_DOWNLOAD_MISSING){
             if(receive_packet.packetSequence >= 0){
@@ -362,11 +364,12 @@ void udp_client::receive_missing_frame(int sockfd, struct sockaddr_in from, stru
 
             receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
         }
+        send_packet(sockfd,server,"DONE_DOWNLOAD_MISSING_ACK",DONE_DOWNLOAD_MISSING_ACK,long(-10));
         cout << "Check" << endl;
 
     }
     // send receive all frame signal
-    send_packet(sockfd, server, "Receive ALL Frames", DONE_DOWNLOAD_ACK, long(-3));
+    send_packet(sockfd, server, "Receive ALL Frames", DOWNLOAD_FINISH, long(-3));
     cout << "Receive ALL Frames" << endl;
 
     return;
@@ -410,8 +413,13 @@ bool udp_client::is_missing_frame(vector<long> receive_file_sequence, vector<lon
     return flag;
 }
 
-void udp_client::request_to_resend_missing_frame(int sockfd, struct sockaddr_in server, vector<long> missing_frame){
+void udp_client::request_to_resend_missing_frame(int sockfd, struct sockaddr_in server, struct sockaddr_in from, vector<long> missing_frame){
     string send_string = "";
+    struct packet receive_packet;
+    memset(&receive_packet,0,sizeof(receive_packet));
+    int send_to_return_number = 0;
+    int timeout = 0;
+
     for(int i = 0; i < missing_frame.size(); i++){
         string current_missing = to_string(missing_frame[i]);
         if(send_string.length() + current_missing.length() <= DATABUFFER_SIZE - 1){
@@ -427,7 +435,18 @@ void udp_client::request_to_resend_missing_frame(int sockfd, struct sockaddr_in 
         }
     }
     // send last missing
-    send_packet(sockfd, server, send_string, DOWNLOAD_MISSING_SEND_DONE, send_string.length());
+    send_packet(sockfd, server, send_string, DOWNLOAD_MISSING, send_string.length());
+
+    send_packet(sockfd, server, "DOWNLOAD_MISSING_SEND_DONE", DOWNLOAD_MISSING_SEND_DONE, send_string.length());
+    send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+    while(receive_packet.typePacket != DOWNLOAD_MISSING_ACK){
+        send_packet(sockfd, server, "DOWNLOAD_MISSING_SEND_DONE", DOWNLOAD_MISSING_SEND_DONE, send_string.length());
+        send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+        if(timeout > 20){
+            error("timeout");
+        }
+        timeout++;
+    }
 
     return;
 }

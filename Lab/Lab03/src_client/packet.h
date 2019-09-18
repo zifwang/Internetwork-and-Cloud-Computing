@@ -34,11 +34,17 @@ enum packetType{
     UPLOAD,                                  // client starts to uploading packet
     DOWNLOAD,                                // server starts to send packet and client downloading it
     DONE_UPLOAD,                             // client finishes send packets 
-    DONE_DOWNLOAD,                           // server finishes send packets 
+    DONE_DOWNLOAD,                           // server finishes send packets
+    DONE_UPLOAD_ACK,                         // server confirms receiving client finishes send packets 
+    DONE_DOWNLOAD_ACK,                       // client confirms receiving server finishes send packets 
     DONE_UPLOAD_MISSING,                     // client finishes sending missing packets
     DONE_DOWNLOAD_MISSING,                   // server finishes sending missing packets
-    DONE_UPLOAD_ACK,                         // server confirms receiving finish
-    DONE_DOWNLOAD_ACK                        // client confirms receiving finish
+    DONE_UPLOAD_MISSING_ACK,                 // client finishes sending missing packets and server confirms receive
+    DONE_DOWNLOAD_MISSING_ACK,               // server finishes sending missing packets and client confirms receive
+    UPLOAD_FINISH,                           // server confirms receive the entire file
+    DOWNLOAD_FINISH,                         // client confirms receive the entire file
+    UPLOAD_FINISH_ACK,                       // client confirms receive finish signal
+    DOWNLOAD_FINISH_ACK                      // server confirms receive finish signal
 };
 
 // Define packet 
