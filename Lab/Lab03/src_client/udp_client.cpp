@@ -533,7 +533,7 @@ void udp_client::error(const char *msg){
 vector<string> udp_client::readFile(string fileName, long fileSize, long totalFrame){
     
     FILE *file;
-    vector<string> v;
+    std::vector<string> v;
     char *buffer;
     long file_size = fileSize;
 
