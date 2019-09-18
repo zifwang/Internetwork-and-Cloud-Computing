@@ -23,8 +23,8 @@ udp_client::udp_client(string ipAddress, int portNumber, string command, string 
     file_name = fileName;
 
     /*Clear all the data buffer and structure*/
-    memset(&server, 0, sizeof(server));
-	memset(&from, 0, sizeof(from));
+    std::memset(&server, 0, sizeof(server));
+	std::memset(&from, 0, sizeof(from));
 
     // init socket
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -52,31 +52,32 @@ void udp_client::run(){
 
                 // send header and receive receiver confirmation
                 if(!send_header(sockfd, server, from, total_frame, file_name)) error("Error send header");
-                cout << "Success send header" << endl;
 
                 // send file
                 send_file();
-                cout << "Done" << endl;
             }
             else{
-                cout << "enter correct file name" << endl;
+                std::cout << "enter correct file name" << endl;
+                exit(EXIT_FAILURE);
             }
         }
         if(udp_command == "download"){
             bool flg = request_to_download_file(sockfd,server,from);
-            cout << flg;
+            std::cout << flg;
             receive_header(sockfd, from, server);
-            std::cout << "Successfully Receive header" << endl;
-            std::cout << "Total_Frame: " << total_frame << endl;
+            std::cout << " Successfully Receive File Status: " << endl;
+            std::cout << "                                  File Name: " << file_name << endl;
+            std::cout << "                                  Total Frames: " << total_frame << endl;
             receive_file();
-            for (auto& t : receive_file_map){
-                std::cout << t.first << " " << t.second <<  "\n";
-            }
-            std::cout << "Receive number of packets: " << receive_file_map.size() << endl;
             std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
+            // for (auto& t : receive_file_map){
+            //     std::cout << t.first << " " << t.second <<  "\n";
+            // }
+            // std::cout << "Receive number of packets: " << receive_file_map.size() << endl;
+            // std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
         }
         if(udp_command == "message"){
-            cout << "finish later" << endl;
+            std::cout << "finish later" << endl;
             // come back later
         }
     }
@@ -105,44 +106,77 @@ void udp_client::send_file(){
 
     // Declare variables
     struct packet receive_packet;
-    memset(&receive_packet, 0, sizeof(receive_packet));
+    // struct packet send_my_packet;
+    std::memset(&receive_packet, 0, sizeof(receive_packet));
+    // std::memset(&send_my_packet, 0, sizeof(send_my_packet));
     int send_to_return_number;
-    socklen_t length = sizeof(struct sockaddr_in);
     int resend_frame = 0;
+    long ack_seq = 0;
+    bool timeout_flag = false;
 
     // Start sending file to receiver
-    for(int i = 0; i < fileVector.size(); i++){
+    for(size_t i = 0; i < fileVector.size(); i++){
         // cout << i << endl;
         // send_to_return_number = send_frame(sockfd,server,(long)i,fileVector[i]);
-        send_packet(sockfd,server,fileVector[i],UPLOAD,(long)i);
-    }
+        // send_packet(sockfd,server,fileVector[i],UPLOAD,(long)i);
+        // std::memset(&send_my_packet, 0, sizeof(send_my_packet));
+        ack_seq = 0;
+        // send_my_packet.packetSequence = long(i);
+        // send_my_packet.typePacket = UPLOAD;
+        // send_my_packet.dataSize = fileVector[i].length();
+        // strcpy(send_my_packet.dataBuffer,fileVector[i].c_str());
 
-    send_packet(sockfd,server,"DONE_UPLOAD",DONE_UPLOAD,long(-1));
-    cout << "send first file done" << endl;
+        // sendto(sockfd, &(send_my_packet), sizeof(send_my_packet), 0, (struct sockaddr *) &server, sizeof(server));
+        send_packet(sockfd,server,fileVector[i],UPLOAD,long(i));  //send the frame
+        recvfrom(sockfd, &(ack_seq), sizeof(ack_seq), 1, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);	//Recieve the acknowledgement
 
-    send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
-    cout << send_to_return_number << endl;
-    while(receive_packet.typePacket != DONE_UPLOAD_ACK){
-        missing_frame.clear();
-        while(receive_packet.typePacket != UPLOAD_MISSING_SEND_DONE){
-            missing_frame_packet_interpreter(receive_packet,missing_frame);
-            memset(&receive_packet, 0, sizeof(receive_packet));
-            send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+        while(ack_seq != i){
+            // sendto(sockfd, &(send_my_packet), sizeof(send_my_packet), 0, (struct sockaddr *) &server, sizeof(server));  //send the frame
+            send_packet(sockfd,server,fileVector[i],UPLOAD,long(i));  // resend the frame
+            recvfrom(sockfd, &(ack_seq), sizeof(ack_seq), 1, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);	//Recieve the acknowledgement
+            std::cout << "Frame: " << i << "droped";
+            resend_frame++;
+            if (resend_frame == 200) {
+				timeout_flag = true;
+				break;
+				}
         }
-        cout << "get missing done" << endl;
-        // Send missing
-        for(int i = 0; i < missing_frame.size(); i++){
-            // send_to_return_number = send_frame(sockfd,server,missing_frame[i],fileVector[int(missing_frame[i])]);
-            send_packet(sockfd,server,fileVector[int(missing_frame[i])],UPLOAD,missing_frame[i]);
-        }
+        resend_frame = 0;
 
-        send_packet(sockfd,server,"DONE_UPLOAD",DONE_UPLOAD_MISSING,long(-1));
-        cout << "send missing done" << endl;
-        // Get new receive
-        send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+        if (timeout_flag) {
+			std::cout << "File not send" << endl;
+			break;
+ 		}
+        
+        if(total_frame == ack_seq) std::cout << "File send" << endl;
     }
-    cout << "Send all frames done" << endl;
-    cout << "Type: " << receive_packet.typePacket << endl;
+    std::cout << "Send all frames done" << endl;
+    // send_packet(sockfd,server,"DONE_UPLOAD",DONE_UPLOAD,long(-1));
+    // cout << "send first file done" << endl;
+
+    // send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+    // cout << send_to_return_number << endl;
+    // while(receive_packet.typePacket != DONE_UPLOAD_ACK){
+    //     missing_frame.clear();
+    //     while(receive_packet.typePacket != UPLOAD_MISSING_SEND_DONE){
+    //         missing_frame_packet_interpreter(receive_packet,missing_frame);
+    //         memset(&receive_packet, 0, sizeof(receive_packet));
+    //         send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+    //     }
+    //     cout << "get missing done" << endl;
+    //     // Send missing
+    //     for(int i = 0; i < missing_frame.size(); i++){
+    //         // send_to_return_number = send_frame(sockfd,server,missing_frame[i],fileVector[int(missing_frame[i])]);
+    //         send_packet(sockfd,server,fileVector[int(missing_frame[i])],UPLOAD,missing_frame[i]);
+    //     }
+
+    //     send_packet(sockfd,server,"DONE_UPLOAD",DONE_UPLOAD_MISSING,long(-1));
+    //     cout << "send missing done" << endl;
+    //     // Get new receive
+    //     send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
+    // }
+    // std::cout << "Send all frames done" << endl;
+    // cout << "Type: " << receive_packet.typePacket << endl;
      
     return;
 }
@@ -197,7 +231,7 @@ void udp_client::send_packet(int sockfd, struct sockaddr_in server, string send_
 
     // send packet
     send_to_return_number = sendto(sockfd,&(packet_send),sizeof(packet_send),0,(const struct sockaddr *) &server, sizeof(server));
-    cout << "Send to type: " << type << ", sendtoreturn number: " << send_to_return_number << endl;
+    // std::cout << "Send to type: " << type << ", sendtoreturn number: " << send_to_return_number << endl;
     while(send_to_return_number < 0){
         if(timeOut_couter > 20){
             error("Error in sending packet");
@@ -278,29 +312,47 @@ void udp_client::receive_file(){
     int receive_from_return_number;
     memset(&receive_packet, 0, sizeof(receive_packet));
     // memset(&send_packet, 0, sizeof(send_packet));
+    
+    for(long i = 0; i < total_frame; i++){
+        if(i == total_frame){
+            cout << "Download all file" << endl;
+        }
+        memset(&receive_packet, 0, sizeof(receive_packet));
+        recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);  
+		sendto(sockfd, &(receive_packet.packetSequence), sizeof(receive_packet.packetSequence), 0, (struct sockaddr *) &server, sizeof(server));	
 
-    // Get file
-    receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
-    while(receive_packet.typePacket != DONE_DOWNLOAD){
-        std::cout << receive_from_return_number << endl;
-        if(receive_packet.packetSequence >= 0){
+		if ((receive_packet.packetSequence < i) || (receive_packet.packetSequence > i)) i--;
+		else{
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
             receive_file_sequence.push_back(receive_packet.packetSequence);
         }
-        std::cout << "Type: " << receive_packet.typePacket << endl;
-        std::cout << "Sequence: " << receive_packet.packetSequence << endl;
-        std::cout << "Size: " << receive_file_sequence.size() << endl;
-
-        memset(&receive_packet, 0, sizeof(receive_packet));
-        receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
     }
-    send_packet(sockfd,server,"DONE_DOWNLOAD_ACK",DONE_DOWNLOAD_ACK,long(-10));
 
-    std::cout << "Get First file done" << endl;
 
-    // Receive Missing frame
-    receive_missing_frame(sockfd,from,server);
+
+    // // Get file
+    // receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
+    // while(receive_packet.typePacket != DONE_DOWNLOAD){
+    //     std::cout << receive_from_return_number << endl;
+    //     if(receive_packet.packetSequence >= 0){
+    //         string str(receive_packet.dataBuffer);
+    //         receive_file_map[receive_packet.packetSequence] = str;
+    //         receive_file_sequence.push_back(receive_packet.packetSequence);
+    //     }
+    //     std::cout << "Type: " << receive_packet.typePacket << endl;
+    //     std::cout << "Sequence: " << receive_packet.packetSequence << endl;
+    //     std::cout << "Size: " << receive_file_sequence.size() << endl;
+
+    //     memset(&receive_packet, 0, sizeof(receive_packet));
+    //     receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr* ) &from, (socklen_t *) &sockaddr_in_length);
+    // }
+    // send_packet(sockfd,server,"DONE_DOWNLOAD_ACK",DONE_DOWNLOAD_ACK,long(-10));
+
+    // std::cout << "Get First file done" << endl;
+
+    // // Receive Missing frame
+    // receive_missing_frame(sockfd,from,server);
 
     return;
 }
@@ -329,9 +381,6 @@ void udp_client::receive_header(int sockfd, struct sockaddr_in from, struct sock
 
     // Update typePacket of header_packet
     header_packet.typePacket = (enum packetType)DOWNLOAD_HEADER_REQUEST_ACK;
-
-    std::cout << "File name: " << file_name << endl;
-    std::cout << "Total frames: " << total_frame << endl;
 
     header = sendto(sockfd, &(header_packet), sizeof(header_packet), 0, (struct sockaddr* ) &server, sizeof(server));
     while(header < 0){
@@ -365,18 +414,18 @@ void udp_client::receive_missing_frame(int sockfd, struct sockaddr_in from, stru
             receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
         }
         send_packet(sockfd,server,"DONE_DOWNLOAD_MISSING_ACK",DONE_DOWNLOAD_MISSING_ACK,long(-10));
-        cout << "Check" << endl;
+        std::cout << "Check" << endl;
 
     }
     // send receive all frame signal
     send_packet(sockfd, server, "Receive ALL Frames", DOWNLOAD_FINISH, long(-3));
-    cout << "Receive ALL Frames" << endl;
+    std::cout << "Receive ALL Frames" << endl;
 
     return;
 }
 
 bool udp_client::is_missing_frame(vector<long> receive_file_sequence, vector<long> &missing_frame){
-    cout << "Check is_missing_frame" << endl;
+    std::cout << "Check is_missing_frame" << endl;
     missing_frame.clear();
     // sort vector
     sort(receive_file_sequence.begin(),receive_file_sequence.end());
@@ -409,7 +458,7 @@ bool udp_client::is_missing_frame(vector<long> receive_file_sequence, vector<lon
             missing_frame.push_back(long(k));
         }
     }
-    cout << "flag: " << flag << endl;
+    std::cout << "flag: " << flag << endl;
     return flag;
 }
 
