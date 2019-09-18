@@ -36,13 +36,10 @@ udp_server::udp_server(int portNumber){
     // time_out.tv_sec = 2;			
 	// time_out.tv_usec = 0;
     // setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&time_out, sizeof(struct timeval));
-    cout << "hear" << endl;
 }
 
 void udp_server::run(){
-    cout << 2 << endl;
     while(1){
-        cout << 2 << endl;
         if(receive_user_request(sockfd,from)){
             /**
             * Client upload file part
@@ -411,11 +408,9 @@ bool udp_server::receive_user_request(int sockfd, struct sockaddr_in from){
     struct packet receive_packet;
     int receive_from_return_number;
     memset(&receive_packet, 0, sizeof(receive_packet));
-    cout << "hear" << endl;
+
     // Get request
     receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
-    cout << receive_from_return_number << endl;
-    cout << receive_packet.typePacket << endl;
 
     if(receive_packet.typePacket == DOWNLOAD_REQUEST || receive_packet.typePacket == UPLOAD_REQUEST){
         user_request = string(receive_packet.dataBuffer);
@@ -572,9 +567,9 @@ void udp_server::writeFile(map<long,string> file_map, string fileName){
     //     it++;
     // }
     for(auto t : file_map){
-        cout << "Frame: " << t.first << endl;
-        cout << "Size: " << t.second.length() << endl;
-        cout << t.second << endl;
+        // cout << "Frame: " << t.first << endl;
+        // cout << "Size: " << t.second.length() << endl;
+        // cout << t.second << endl;
         fwrite(t.second.c_str(),sizeof(char),t.second.length(),filetowrite);
     }
     fclose(filetowrite);
