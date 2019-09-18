@@ -52,6 +52,7 @@ void udp_server::run(){
                 std::cout << "                                  Total Frame: " << total_frame << endl;
                 receive_file();
                 std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
+                writeFile(receive_file_map,file_name);
             }
 
             /**

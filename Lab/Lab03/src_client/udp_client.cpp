@@ -70,6 +70,7 @@ void udp_client::run(){
             std::cout << "                                  Total Frames: " << total_frame << endl;
             receive_file();
             std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
+            writeFile(receive_file_map,file_name);
         }
         if(udp_command == "message"){
             std::cout << "finish later" << endl;
