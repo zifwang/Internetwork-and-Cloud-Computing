@@ -52,6 +52,10 @@ void udp_server::run(){
                 std::cout << "                                  Total Frame: " << total_frame << endl;
                 receive_file();
                 std::cout << "Receive number of packets: " << receive_file_sequence.size() << endl;
+                // for(auto t : receive_file_map){
+                //     cout << "Frame: " << t.first << endl;
+                //     cout << t.second << endl;
+                // }
                 writeFile(receive_file_map,file_name);
             }
 
@@ -323,7 +327,7 @@ void udp_server::receive_file(){
         else{
             string str(receive_packet.dataBuffer);
             receive_file_map[receive_packet.packetSequence] = str;
-            // receive_file_sequence.push_back(receive_packet.packetSequence);
+            receive_file_sequence.push_back(receive_packet.packetSequence);
             // fwrite(receive_packet.dataBuffer, 1, receive_packet.dataSize, file);
         }
     }
@@ -555,12 +559,17 @@ void udp_server::printPacket(struct packet myPacket){
 }
 
 void udp_server::writeFile(map<long,string> file_map, string fileName){
-    std::map<long,string>::iterator it=file_map.begin();
+    // std::map<long,string>::iterator it=file_map.begin();
     FILE *filetowrite;
 	filetowrite=fopen(fileName.c_str(),"w");
-	while(it != file_map.end()){
-        fwrite(it->second.c_str(),sizeof(it->second),1,filetowrite);
-        it++;
+	// while(it != file_map.end()){
+    //     fwrite(it->second.c_str(),sizeof(it->second),1,filetowrite);
+    //     it++;
+    // }
+    for(auto t : file_map){
+        cout << "Frame: " << t.first << endl;
+        cout << t.second << endl;
+        fwrite(t.second.c_str(),1,sizeof(t.second),filetowrite);
     }
     fclose(filetowrite);
     std::cout << "Write file done" << endl;
