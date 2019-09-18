@@ -32,7 +32,10 @@ udp_server::udp_server(int portNumber){
     if(bind(sockfd, (struct sockaddr *) &server, sizeof(server)) == -1){
         error("Server Bind error");
     }
-    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&time_out, sizeof(struct timeval));
+    // Receive timeout
+    // time_out.tv_sec = 2;			
+	// time_out.tv_usec = 0;
+    // setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&time_out, sizeof(struct timeval));
 }
 
 void udp_server::run(){
@@ -60,7 +63,7 @@ void udp_server::run(){
             * Client download file part
             */
             if(user_request == "download"){
-                bool flag = receive_user_download_file_request(sockfd,from);
+                bool flag = receive_user_download_file_request(sockfd,&from);
                 if(access(file_name.c_str(),F_OK) == 0){
                     // get file status
                     struct stat statics; 
@@ -114,7 +117,10 @@ void udp_server::send_file(){
         send_packet(sockfd,from,fileVector[i],DOWNLOAD,long(i));
     }
     // Send Done file transmission done signal to receiver and this Done must be send
-    send_packet(sockfd,from,"DONE",DONE_DOWNLOAD,long(-1));
+    for(int i = 0; i < 10; i++){
+        send_packet(sockfd,from,"DONE",DONE_DOWNLOAD,long(-1));
+    }
+
     std::cout << "send first file done" << endl;
 
     send_to_return_number = recvfrom(sockfd,&receive_packet,sizeof(receive_packet),0,(struct sockaddr *) &from, (socklen_t *) &sockaddr_in_length);
@@ -156,7 +162,7 @@ void udp_server::send_packet(int sockfd, struct sockaddr_in from, string send_da
 
     // send packet
     send_to_return_number = sendto(sockfd,&(packet_send),sizeof(packet_send),0,(const struct sockaddr *) &from, sizeof(from));
-    std::cout << send_to_return_number << endl;
+    // std::cout << send_to_return_number << endl;
     while(send_to_return_number < 0){
         if(timeOut_couter > 20){
             error("Error in sending packet");
@@ -352,19 +358,19 @@ bool udp_server::receive_user_request(int sockfd, struct sockaddr_in from){
     return false;
 }
 
-bool udp_server::receive_user_download_file_request(int sockfd, struct sockaddr_in from){
+bool udp_server::receive_user_download_file_request(int sockfd, struct sockaddr_in *from){
     struct packet receive_packet;
     int receive_from_return_number;
     memset(&receive_packet, 0, sizeof(receive_packet));
     // Get request
-    receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
+    receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (sockaddr*)from, (socklen_t *) & sockaddr_in_length);
     std::cout << receive_from_return_number << endl;
     while(receive_packet.typePacket != DOWNLOAD_FILE_REQUEST_ACK_CLIENT){
         file_name = string(receive_packet.dataBuffer);
         cout << file_name << endl;
-        send_packet(sockfd,from,file_name,DOWNLOAD_FILE_REQUEST_ACK,long(-3));
+        send_packet(sockfd,*from,file_name,DOWNLOAD_FILE_REQUEST_ACK,long(-3));
         memset(&receive_packet, 0, sizeof(receive_packet));
-        receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (struct sockaddr*) &from, (socklen_t *) & sockaddr_in_length);
+        receive_from_return_number = recvfrom(sockfd, &(receive_packet), sizeof(receive_packet), 0, (sockaddr*)from, (socklen_t *) & sockaddr_in_length);
     }
     // Check file
     if(access(file_name.c_str(),F_OK) == 0) return true;
