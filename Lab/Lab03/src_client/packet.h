@@ -12,16 +12,30 @@
 
 // Define type of message
 enum packetType{
-    REQUEST,                        // sender requests receiver to receive file
-    REQUEST_ACK,                    // receiver receives sending request from sender and confirm back to sender.
-    MISSING,                        // receiver sends missing signal to sender to request resend
-    MISSING_SEND_DONE,              // receiver sends missing done signal to sender 
-    MISSING_ACK,                    // sender receives resend request
-    SEND,                           // sender starts to send packet
-    SEND_ACK,                       // reciever gets packet
-    DONE,                           // sender finishes sending 
-    DONE_MISSING,                   // sender finishes sending missing frames
-    DONE_ACK,                       // receive confirms receiving finish
+    MESSAGE,                                 // client sends message to server
+    MESSAGE_ACK,                             // server confirms MESSAGE request from client
+    DOWNLOAD_REQUEST,                        // client sends download request to server to download file
+    DOWNLOAD_REQUEST_ACK,                    // server receives download request from client and confirms it
+    DOWNLOAD_HEADER_REQUEST,                 // server sends header request to client
+    DOWNLOAD_HEADER_REQUEST_ACK,             // client receives DOWNLOAD_HEADER_REQUEST and confirms to server
+    UPLOAD_REQUEST,                          // client send upload request to server to upload file
+    UPLOAD_REQUEST_ACK,                      // server receives upload request from client and confirms it
+    UPLOAD_HEADER_REQUEST,                   // client sends request to upload header to server
+    UPLOAD_HEADER_REQUEST_ACK,               // server receives UPLOAD_HEADER_REQUEST and confirms to client
+    DOWNLOAD_MISSING,                        // client sends missing signal to server to request resend
+    DOWNLOAD_MISSING_SEND_DONE,              // client sends missing done signal to server 
+    DOWNLOAD_MISSING_ACK,                    // server receives resend request
+    UPLOAD_MISSING,                          // server sends missing signal to server to request client
+    UPLOAD_MISSING_SEND_DONE,                // server sends missing done signal to client 
+    UPLOAD_MISSING_ACK,                      // client receives resend request
+    UPLOAD,                                  // client starts to uploading packet
+    DOWNLOAD,                                // server starts to send packet and client downloading it
+    DONE_UPLOAD,                             // client finishes send packets 
+    DONE_DOWNLOAD,                           // server finishes send packets 
+    DONE_UPLOAD_MISSING,                     // client finishes sending missing packets
+    DONE_DOWNLOAD_MISSING,                   // server finishes sending missing packets
+    DONE_UPLOAD_ACK,                         // server confirms receiving finish
+    DONE_DOWNLOAD_ACK                        // client confirms receiving finish
 };
 
 // Define packet 
