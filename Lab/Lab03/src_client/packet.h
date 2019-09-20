@@ -6,45 +6,25 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define DATABUFFER_SIZE 256             // max size of data buffer in the packet
+#define DATABUFFER_SIZE 1025             // max size of data buffer in the packet
 #define PACKET_ELEMENTS 4               // define how many elements in the packet struct
 #define PACKET_SIZE 274                 // max size of packet
 
 // Define type of message
 enum packetType{
-    MESSAGE,                                 // client sends message to server
-    MESSAGE_ACK,                             // server confirms MESSAGE request from client
-    DOWNLOAD_REQUEST,                        // client sends download request to server to download file
-    DOWNLOAD_REQUEST_ACK,                    // server receives download request from client and confirms it
-    DOWNLOAD_HEADER_REQUEST,                 // server sends header request to client
-    DOWNLOAD_HEADER_REQUEST_ACK,             // client receives DOWNLOAD_HEADER_REQUEST and confirms to server
-    DOWNLOAD_FILE_REQUEST,                   // client send DOWNLOAD_FILE_REQUEST to server with provided filename
-    DOWNLOAD_FILE_REQUEST_ACK,               // server receives DOWNLOAD_FILE_REQUEST and confirm it
-    DOWNLOAD_FILE_REQUEST_ACK_CLIENT,        // client confirm DOWNLOAD_FILE_REQUEST_ACK
-    UPLOAD_REQUEST,                          // client send upload request to server to upload file
-    UPLOAD_REQUEST_ACK,                      // server receives upload request from client and confirms it
-    UPLOAD_HEADER_REQUEST,                   // client sends request to upload header to server
-    UPLOAD_HEADER_REQUEST_ACK,               // server receives UPLOAD_HEADER_REQUEST and confirms to client
-    DOWNLOAD_MISSING,                        // client sends missing signal to server to request resend
-    DOWNLOAD_MISSING_SEND_DONE,              // client sends missing done signal to server 
-    DOWNLOAD_MISSING_ACK,                    // server receives resend request
-    UPLOAD_MISSING,                          // server sends missing signal to server to request client
-    UPLOAD_MISSING_SEND_DONE,                // server sends missing done signal to client 
-    UPLOAD_MISSING_ACK,                      // client receives resend request
-    UPLOAD,                                  // client starts to uploading packet
-    DOWNLOAD,                                // server starts to send packet and client downloading it
-    DONE_UPLOAD,                             // client finishes send packets 
-    DONE_DOWNLOAD,                           // server finishes send packets
-    DONE_UPLOAD_ACK,                         // server confirms receiving client finishes send packets 
-    DONE_DOWNLOAD_ACK,                       // client confirms receiving server finishes send packets 
-    DONE_UPLOAD_MISSING,                     // client finishes sending missing packets
-    DONE_DOWNLOAD_MISSING,                   // server finishes sending missing packets
-    DONE_UPLOAD_MISSING_ACK,                 // client finishes sending missing packets and server confirms receive
-    DONE_DOWNLOAD_MISSING_ACK,               // server finishes sending missing packets and client confirms receive
-    UPLOAD_FINISH,                           // server confirms receive the entire file
-    DOWNLOAD_FINISH,                         // client confirms receive the entire file
-    UPLOAD_FINISH_ACK,                       // client confirms receive finish signal
-    DOWNLOAD_FINISH_ACK                      // server confirms receive finish signal
+    MESSAGE_REQUEST,                 // client requests to transfer messages with server
+    MESSAGE_REQUEST_ACK,             // Server gets MESSAGE_REQUEST from client and confirms it by sending MESSAGE_REQUEST_ACK to client
+    DOWNLOAD_REQUEST,                // client requests to download file from server
+    DOWNLOAD_REQUEST_ACK,            // Server gets DOWNLOAD_REQUEST from client and confirms it by sending DOWNLOAD_REQUEST_ACK to client
+    DOWNLOAD_FILE_REQUEST,           // Client requests to download file with given file name
+    DOWNLOAD_FILE_REQUEST_ACK,       // Server gets DOWNLOAD_FILE_REQUEST from client and confirms back by using DOWNLOAD_FILE_REQUEST_ACK signal
+    UPLOAD_REQUEST,                  // client requests to upload file to server
+    UPLOAD_REQUEST_ACK,              // Server gets UPLOAD_REQUEST from client and confirms it by sending UPLOAD_REQUEST_ACK to client
+    SEND_FILE_STATUS,                // Sender (server: download case, client: upload case) sends file status to receiver (file name, total frame)
+    SEND_FILE_STATUS_ACK,            // Receiver (client: download case, server: upload case) gets SEND_FILE_STATUS from sender and confirms back
+    SEND_PACKET,                     // Sender sends packet to receive
+    SEND_FILE_DONE,                  // Sender finishs sending all file.
+    SEND_FILE_DONE_ACK               // Receiver confirms that it gets SEND_FILE_DONE signal from Sender.
 };
 
 // Define packet 
@@ -57,6 +37,6 @@ struct packet
     long packetSequence;
 };
 
-void socket_buffer_parser(struct packet inputPacket, char *outputBuffer);
+// void socket_buffer_parser(struct packet inputPacket, char *outputBuffer);
 
-packet packet_parser(char *inputPackett);
+// packet packet_parser(char *inputPackett);

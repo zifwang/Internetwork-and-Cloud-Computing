@@ -13,6 +13,8 @@
 #include "packet.h"
 
 #define DEFAULTPORT 50000                 // A Default port number
+#define MAX_SEND 200                       // The maximum number times can use to send a packet
+#define USELESS_LENGTH -1             // 
 
 using namespace std;
 
@@ -75,8 +77,7 @@ class udp_client{
         struct sockaddr_in server, from;
         socklen_t sockaddr_in_length = sizeof(struct sockaddr_in);
         struct hostent *hp;
-        // char buffer[PACKET_SIZE];
-
+        struct timeval time_out = {0, 0};
 
         // file status
         string file_name = "";

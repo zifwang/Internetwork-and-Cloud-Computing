@@ -18,6 +18,9 @@
 using namespace std;
 
 #define DEFAULTPORT 50000                 // A Default port number
+#define MAX_SEND 200                       // The maximum number times can use to send a packet
+#define USELESS_LENGTH -1             // 
+
 
 class udp_server{
     public:
@@ -83,7 +86,6 @@ class udp_server{
         struct sockaddr_in from;
         socklen_t sockaddr_in_length = sizeof(struct sockaddr_in);
         struct timeval time_out = {0, 0};
-        char buffer[PACKET_SIZE];
 
         // file status
         string file_name = "";
