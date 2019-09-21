@@ -443,7 +443,6 @@ void udp_client::receive_header(int sockfd, struct sockaddr_in from, struct sock
 }
 
 set<long> udp_client::missing_frame(vector<long> receive_file_sequence){
-    std::cout << "Check missing_frame" << endl;
     std::set<long> missing_frame_set;
     // sort vector
     sort(receive_file_sequence.begin(),receive_file_sequence.end());

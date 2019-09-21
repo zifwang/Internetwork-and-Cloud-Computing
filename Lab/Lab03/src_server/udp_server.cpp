@@ -541,9 +541,9 @@ vector<string> udp_server::readFile(string fileName, long fileSize, long totalFr
         // cout << endl;
         string myString = string(buffer);
         v.push_back(myString);
-        cout << "Frame: " << framecounter << endl;
-        cout << "Size: " << myString.size() << endl;
-        cout << myString << endl;
+        // cout << "Frame: " << framecounter << endl;
+        // cout << "Size: " << myString.size() << endl;
+        // cout << myString << endl;
 
         bzero(buffer,DATABUFFER_SIZE);
 
