@@ -53,7 +53,7 @@ void udp_server::run(){
                 std::cout << "                                  Total Frame: " << total_frame << endl;
                 receive_file();
                 std::cout << "Receive " << receive_file_map.size() << " numbers of frames and total frames is: " << total_frame << endl; 
-                // writeFile(receive_file_map,file_name);
+                writeFile(receive_file_map,file_name);
             }
 
             /**
@@ -78,7 +78,6 @@ void udp_server::run(){
 
                     // send file
                     send_file();
-                    cout << "hear" << endl;
                 }
                 else{
                     // Send file list to user
@@ -185,7 +184,7 @@ void udp_server::send_file(){
     for(int i = 0; i < MAX_SEND; i++){
         send_packet(sockfd,from,"GET_ALL_FILE_ACK",GET_ALL_FILE_ACK,long(USELESS_LENGTH));
     }
-    
+
     std::cout << "Send Entire File Done" << endl;
 
     return;
@@ -524,28 +523,32 @@ vector<string> udp_server::readFile(string fileName, long fileSize, long totalFr
 
     FILE *file;
     vector<string> v;
-    char *buffer;
+    char *buffer = new char[DATABUFFER_SIZE];
 
     file = fopen(fileName.c_str(),"rb");
+    int framecounter = 0;
 
     while(fileSize > 0){
         int chunck = 0;
         if(fileSize <= DATABUFFER_SIZE - 1) chunck = fileSize;
         else chunck = DATABUFFER_SIZE - 1;
-        buffer = new char[chunck+1];
 
         fread(buffer,1,chunck,file);
-        buffer[chunck+1] = '\0';
-
+        // cout << "Frame: " << totalFrame << endl;
         // for(int i = 0; i < strlen(buffer); i++){
         //     cout << buffer[i];
         // }
         // cout << endl;
+        string myString = string(buffer);
+        v.push_back(myString);
+        cout << "Frame: " << framecounter << endl;
+        cout << "Size: " << myString.size() << endl;
+        cout << myString << endl;
 
-        v.push_back(buffer);
-        bzero(buffer,chunck);
+        bzero(buffer,DATABUFFER_SIZE);
 
         fileSize -= chunck;
+        framecounter++;
     }
     fclose(file);
 

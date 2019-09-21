@@ -70,7 +70,7 @@ void udp_client::run(){
                 std::cout << "                                  Total Frames: " << total_frame << endl;
                 receive_file();
                 std::cout << "Receive " << receive_file_map.size() << " numbers of frames and total frames is: " << total_frame << endl; 
-                // writeFile(receive_file_map,file_name);
+                writeFile(receive_file_map,file_name);
             }
             else{
                 cout << "No such file in server and please give a another file name." << endl;
@@ -544,7 +544,7 @@ vector<string> udp_client::readFile(string fileName, long fileSize, long totalFr
     
     FILE *file;
     std::vector<string> v;
-    char *buffer;
+    char *buffer = new char[DATABUFFER_SIZE];
     long file_size = fileSize;
 
     file = fopen(fileName.c_str(),"rb");
@@ -553,18 +553,12 @@ vector<string> udp_client::readFile(string fileName, long fileSize, long totalFr
         int chunck = 0;
         if(file_size <= DATABUFFER_SIZE - 1) chunck = file_size;
         else chunck = DATABUFFER_SIZE - 1;
-        buffer = new char[chunck+1];
 
         fread(buffer,1,chunck,file);
-        buffer[chunck+1] = '\0';
 
-        // for(int i = 0; i < strlen(buffer); i++){
-        //     cout << buffer[i];
-        // }
-        // cout << endl;
-
-        v.push_back(buffer);
-        bzero(buffer,chunck+1);
+        string str = string(buffer);
+        v.push_back(str);
+        bzero(buffer,DATABUFFER_SIZE);
 
         file_size -= chunck;
     }
@@ -582,9 +576,9 @@ void udp_client::writeFile(map<long,string> file_map, string fileName){
     //     it++;
     // }
     for(auto t : file_map){
-        cout << "Frame: " << t.first << endl;
-        cout << "Size: " << t.second.length() << endl;
-        cout << t.second << endl;
+        // cout << "Frame: " << t.first << endl;
+        // cout << "Size: " << t.second.length() << endl;
+        // cout << t.second << endl;
         fwrite(t.second.c_str(),sizeof(char),t.second.length(),filetowrite);
     }
     fclose(filetowrite);
