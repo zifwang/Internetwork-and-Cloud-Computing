@@ -9,11 +9,12 @@
 #include <string.h>
 #include <vector>
 #include <map>
+#include <set>
 #include <iterator>
 #include "packet.h"
 
 #define DEFAULTPORT 50000                 // A Default port number
-#define MAX_SEND 200                       // The maximum number times can use to send a packet
+#define MAX_SEND 20                       // The maximum number times can use to send a packet
 #define USELESS_LENGTH -1             // 
 
 using namespace std;
@@ -46,7 +47,7 @@ class udp_client{
 
         bool send_user_request(int sockfd, struct sockaddr_in server, struct sockaddr_in from, string command);
         
-        void missing_frame_packet_interpreter(struct packet receive_packet, vector<long>& missing_frame);
+        void missing_frame_packet_interpreter(struct packet receive_packet, vector<long>& missing_frame_seq);
 
         void receive_file();
 
@@ -54,9 +55,9 @@ class udp_client{
         
         void receive_missing_frame(int sockfd, struct sockaddr_in from, struct sockaddr_in server);
         
-        bool is_missing_frame(vector<long> receive_file_sequence, vector<long> &missing_frame);
+        set<long> missing_frame(vector<long> receive_file_sequence);
 
-        void request_to_resend_missing_frame(int sockfd, struct sockaddr_in server, struct sockaddr_in from, vector<long> missing_frame);
+        void request_to_resend_missing_frame(int sockfd, struct sockaddr_in server, struct sockaddr_in from, set<long> missing_frame_sequence);
 
         bool request_to_download_file(int sockfd, struct sockaddr_in server, struct sockaddr_in from);
 
@@ -85,7 +86,6 @@ class udp_client{
         long total_frame = 0;
         map<long,string> receive_file_map;
         vector<long> receive_file_sequence;
-        vector<long> missing_frame;
 
 };
 

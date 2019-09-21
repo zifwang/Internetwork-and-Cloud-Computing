@@ -24,7 +24,12 @@ enum packetType{
     SEND_FILE_STATUS_ACK,            // Receiver (client: download case, server: upload case) gets SEND_FILE_STATUS from sender and confirms back
     SEND_PACKET,                     // Sender sends packet to receive
     SEND_FILE_DONE,                  // Sender finishs sending all file.
-    SEND_FILE_DONE_ACK               // Receiver confirms that it gets SEND_FILE_DONE signal from Sender.
+    SEND_FILE_DONE_ACK,              // Receiver confirms that it gets SEND_FILE_DONE signal from Sender.
+    SEND_MISSING,                    // Receiver finds the missing frames and requires sender to resend these frames.   
+    SEND_MISSING_DONE,               // Receiver finishes sending the missing frame and requires sender to resend these frames. 
+    SEND_MISSING_DONE_ACK,           // Sender confrims it receive SEND_MISSING_DONE
+    GET_ALL_FILE,                    // Receiver confirms get entire file
+    GET_ALL_FILE_ACK                 // Sender receive GET_ALL_FILE from client;
 };
 
 // Define packet 
