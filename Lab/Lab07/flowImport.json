@@ -1,0 +1,8 @@
+[{"id":"c12e9e18.651ae","type":"tab","label":"Flow 3","disabled":false,"info":""},
+ {"id":"bec0b05.54ba45","type":"inject","z":"c12e9e18.651ae","name":"","topic":"","payload":"","payloadType":"date","repeat":"1","crontab":"","once":true,"onceDelay":"","x":170,"y":200,"wires":[["a9c3b25c.f6cc1"]]},
+ {"id":"a9c3b25c.f6cc1","type":"exec","z":"c12e9e18.651ae","command":"","addpay":true,"append":"","useSpawn":"false","timer":"","oldrc":false,"name":"","x":210,"y":300,"wires":[["dda5983.8467f68"],[],[]]},
+ {"id":"dda5983.8467f68","type":"json","z":"c12e9e18.651ae","name":"","property":"payload","action":"","pretty":false,"x":550,"y":380,"wires":[["3fed63c8.f80ccc"]]},
+ {"id":"3fed63c8.f80ccc","type":"function","z":"c12e9e18.651ae","name":"Get the number","func":"msg.payload.light_sensor = msg.payload[\"STK342X Ambient light\"][\"values\"][0];\nreturn msg","outputs":1,"noerr":0,"x":610,"y":260,"wires":[["a8cd33f3.1c049"]]},
+ {"id":"6d1fabef.8f4bf4","type":"http request","z":"c12e9e18.651ae","name":"","method":"POST","ret":"txt","url":"","tls":"","x":370,"y":60,"wires":[["e7c0faa5.356a38"]]},
+ {"id":"a8cd33f3.1c049","type":"function","z":"c12e9e18.651ae","name":"Format for PowerBI Stream","func":"var timestamp = new Date()\nmsg.payload = JSON.stringify([{\"light_sensor\":msg.payload.light_sensor,\"datetime\":timestamp}]);\nreturn msg;","outputs":1,"noerr":0,"x":500,"y":140,"wires":[["6d1fabef.8f4bf4"]]},
+ {"id":"e7c0faa5.356a38","type":"debug","z":"c12e9e18.651ae","name":"","active":true,"tosidebar":true,"console":true,"tostatus":false,"complete":"payload","x":640,"y":60,"wires":[]}]
